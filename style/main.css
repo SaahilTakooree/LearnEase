@@ -1,0 +1,54 @@
+:root {
+  /* Backgrounds. */
+  --color-bg: rgba(255, 255, 255, 1);
+  --color-surface: rgba(214, 230, 242, 1);
+  
+  /* Text and primary elements. */
+  --color-text: rgba(0, 0, 0, 1); 
+  --color-button: rgba(118, 159, 205, 1);
+  
+  --color-border: rgba(185, 215, 234, 1);
+  
+  /* Accent and highlights. */
+  --color-accent-light: rgba(185, 215, 234, 0.6); 
+  --color-accent-dark: rgba(118, 159, 205, 0.2);
+}
+
+
+body.dark {
+  /* Backgrounds. */
+  --color-bg: rgba(18, 18, 18, 1);
+  --color-surface: rgba(30, 30, 30, 1);
+  
+  /* Text and primary elements. */
+  --color-text: rgba(245, 245, 245, 1);
+  --color-button: rgba(118, 159, 205, 1);
+  
+  /* Borders.*/
+  --color-border: rgba(42, 42, 42, 1);
+  
+  /* Accent and highlights. */
+  --color-accent-light: rgba(118, 159, 205, 0.3); 
+  --color-accent-dark: rgba(118, 159, 205, 0.6);
+}
+
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: system-ui, sans-serif;
+  margin: 0;
+  padding: 0;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+button {
+  background-color: var(--color-button);
+  color: var(--color-text);
+}
