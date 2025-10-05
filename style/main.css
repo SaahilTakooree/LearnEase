@@ -32,7 +32,7 @@ body.dark {
   --color-accent-dark: rgba(118, 159, 205, 0.6);
 }
 
-/* Reset */
+/* Reset. */
 * {
   margin: 0;
   padding: 0;
@@ -46,9 +46,4 @@ body {
   margin: 0;
   padding: 0;
   transition: background-color 0.3s, color 0.3s;
-}
-
-button {
-  background-color: var(--color-button);
-  color: var(--color-text);
 }

@@ -1,0 +1,19 @@
+header {
+  background-color: var(--color-surface);
+  z-index: 1000;
+}
+
+.navbar-toggler {
+  border-color: var(--color-border);
+  border-width: 0.15rem;
+}
+
+.search-form {
+  width: 50%;
+}
+
+@media (min-width: 992px) {
+  .search-form {
+    width: 25%;
+  }
+}
