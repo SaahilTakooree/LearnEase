@@ -1,7 +1,13 @@
 new Vue({
     el: 'header',
     data: {
-        isSignin: false
+        isSignin: true,
+    },
+    methods: {
+        openAuthForm() {
+            const authContainer = document.getElementById('auth');
+            authContainer.style.display = 'flex';
+        }
     }
 })
 

@@ -1,19 +1,110 @@
-header {
-  background-color: var(--color-surface);
-  z-index: 1000;
+header.navbar {
+  background: var(--color-surface);
+  box-shadow: var(--shadow);
+  padding: 0.5rem 1rem;
+  backdrop-filter: blur(10px);
+  transition: var(--transition);
 }
 
-.navbar-toggler {
-  border-color: var(--color-border);
-  border-width: 0.15rem;
+.navbar-brand {
+  font-weight: 600;
+  font-size: 1.25rem;
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+}
+
+.navbar-brand img {
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+.navbar-nav .nav-item {
+  margin-right: 0.8rem;
+}
+
+.navbar-nav .nav-link {
+  padding: 0.5rem 0.8rem;
+  border-radius: 6px;
+  transition: var(--transition);
+  font-weight: 500;
+}
+
+.navbar-nav .nav-link:hover, .navbar-nav .nav-link.active {
+  background: var(--color-hover);
+  color: var(--color-primary);
+}
+
+.btn-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+}
+
+#toggleDarkMode {
+  accent-color: var(--color-primary);
+  transform: scale(1.1);
+  cursor: pointer;
 }
 
 .search-form {
-  width: 50%;
+  flex: 1;
+  margin: 0 1rem;
+  display: flex;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  transition: var(--transition);
 }
 
-@media (min-width: 992px) {
+.search-form:focus-within {
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+  border-color: var(--color-primary);
+}
+
+.search-form input {
+  flex: 1;
+  padding: 0.4rem 1rem;
+  color: var(--color-text);
+}
+
+.search-form button {
+  padding: 0.4rem 1rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.search-form button:hover {
+  background: var(--color-hover);
+}
+
+header > div:last-child button {
+  background: var(--color-primary);
+  color: white;
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+header > div:last-child button:hover {
+  background: #3a7bd5;
+}
+
+header > div:last-child span {
+  font-weight: 500;
+  color: var(--color-primary);
+}
+
+@media (max-width: 991px) {
   .search-form {
-    width: 25%;
+    max-width: 100%;
+    margin: 0.5rem 0;
+  }
+  
+  .navbar-nav .nav-item {
+    margin-right: 0;
+    margin-bottom: 0.5rem;
   }
 }

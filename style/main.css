@@ -1,35 +1,26 @@
 :root {
-  /* Backgrounds. */
-  --color-bg: rgba(255, 255, 255, 1);
-  --color-surface: rgba(214, 230, 242, 1);
-  
-  /* Text and primary elements. */
-  --color-text: rgba(0, 0, 0, 1); 
-  --color-button: rgba(118, 159, 205, 1);
-  
-  --color-border: rgba(185, 215, 234, 1);
-  
-  /* Accent and highlights. */
-  --color-accent-light: rgba(185, 215, 234, 0.6); 
-  --color-accent-dark: rgba(118, 159, 205, 0.2);
+  /* Light theme. */
+  --color-bg: #ffffff;
+  --color-surface: #eaf3fb;
+  --color-text: #1a1a1a;
+  --color-border: #d0e0ef;
+  --color-primary: #4a90e2;
+  --color-primary-light: #4a90e222;
+  --color-hover: #4a90e210;
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --transition: all 0.3s ease;
 }
 
-
 body.dark {
-  /* Backgrounds. */
-  --color-bg: rgba(18, 18, 18, 1);
-  --color-surface: rgba(30, 30, 30, 1);
-  
-  /* Text and primary elements. */
-  --color-text: rgba(245, 245, 245, 1);
-  --color-button: rgba(118, 159, 205, 1);
-  
-  /* Borders.*/
-  --color-border: rgba(42, 42, 42, 1);
-  
-  /* Accent and highlights. */
-  --color-accent-light: rgba(118, 159, 205, 0.3); 
-  --color-accent-dark: rgba(118, 159, 205, 0.6);
+  /* Dark theme. */
+  --color-bg: #121212;
+  --color-surface: #1e1e1e;
+  --color-text: #f0f0f0;
+  --color-border: #2b2b2b;
+  --color-primary: #7ab7ff;
+  --color-primary-light: #7ab7ff22;
+  --color-hover: #7ab7ff10;
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 /* Reset. */

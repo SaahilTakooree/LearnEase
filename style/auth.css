@@ -1,0 +1,98 @@
+#auth {
+    display: none;
+}
+
+.left-box {
+  background-color: var(--color-surface);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: 40px 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.right-box .header-text h2 {
+  font-weight: 600;
+  color: var(--color-primary);
+  margin-bottom: 5px;
+}
+
+.right-box .header-text p {
+  color: var(--color-text);
+  opacity: 0.8;
+  margin-bottom: 20px;
+}
+
+.right-box .form-control {
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 15px;
+  transition: var(--transition);
+  box-shadow: none;
+}
+
+.slogan {
+  width: 17rem;
+}
+
+.auth-img {
+  width: 14rem;
+}
+
+.right-box .form-control:focus {
+  border-color: var(--color-primary);
+  background-color: var(--color-hover);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+  outline: none;
+}
+
+.right-box ::placeholder {
+  color: var(--color-text);
+  opacity: 0.9;
+}
+
+.right-box button.btn {
+  background-color: var(--color-primary);
+  color: #fff;
+  font-weight: 500;
+  border-radius: 10px;
+  transition: var(--transition);
+  border: none;
+}
+
+.right-box button.btn:hover {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+  transform: translateY(-2px);
+}
+
+.right-box .input-group.mb-5 {
+  font-size: 0.9rem;
+}
+
+.right-box a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.right-box a:hover {
+  color: var(--color-primary-light);
+  text-decoration: underline;
+}
+
+/* ✨ Responsive tweaks */
+@media (max-width: 768px) {
+  .right-box {
+    padding: 25px 20px;
+    border-radius: 12px;
+  }
+
+  .auth-img {
+    width: 7rem;
+  }
+}
