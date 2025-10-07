@@ -4,10 +4,10 @@ new Vue({
         isSignin: true,
     },
     methods: {
-        openAuthForm() {
-            const authContainer = document.getElementById('auth');
-            authContainer.style.display = 'flex';
-        }
+        // openAuthForm() {
+        //     const authContainer = document.getElementById('auth');
+        //     authContainer.style.display = 'flex';
+        // }
     }
 })
 
