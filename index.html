@@ -85,25 +85,29 @@
     <main>
         <div class="row">
             <div class="col-md-2">
-                <aside class="sidebar">
-                    <div class="sort-section mt-5">
-                        <h5>Sort Lessons</h5>
-                        <div class="mb-2 filter-group">
-                            <label class="form-label">Attribute</label>
-                            <select v-model="sortAttribute" class="form-select">
-                                <option value="subject">Subject</option>
-                                <option value="location">Location</option>
-                                <option value="price">Price</option>
-                                <option value="spaces">Spaces</option>
-                            </select>
-                        </div>
-                        <hr>
-                        <div>
-                            <label class="form-label">Order</label>
-                            <select v-model="sortOrder" class="form-select">
-                                <option value="asc">Ascending</option>
-                                <option value="desc">Descending</option>
-                            </select>
+                <aside id="sidebar">
+                    <div class="sort-section">
+                        <button v-if="isSmallScreen" class="btn" @click="toggleFilters">
+                            {{ showFilters ? 'Hide Filters' : 'Show Filters' }}
+                        </button>
+                        <div v-show="showFilters">
+                            <h5>Sort Lessons</h5>
+                            <div class="mb-2 filter-group">
+                                <label class="form-label">Attribute</label>
+                                <select v-model="sortAttribute" class="form-select">
+                                    <option v-for="option in sortOptions" :key="option.value" :value="option.value">
+                                        {{ option.text }}
+                                    </option>
+                                </select>
+                            </div>
+                            <hr>
+                            <div>
+                                <label class="form-label">Order</label>
+                                <select v-model="sortOrder" class="form-select">
+                                    <option value="asc">Ascending</option>
+                                    <option value="desc">Descending</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </aside>
@@ -196,6 +200,7 @@
 
     <script src="javascript/header.js"></script>
     <script src="javascript/auth.js"></script>
+    <script src="javascript/sidebar.js"></script>
 </body>
 
 </html>

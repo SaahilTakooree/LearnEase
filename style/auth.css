@@ -1,5 +1,5 @@
 #auth {
-    display: none;
+  display: none;
 }
 
 .left-box {
@@ -85,7 +85,6 @@
   text-decoration: underline;
 }
 
-/* ✨ Responsive tweaks */
 @media (max-width: 768px) {
   .right-box {
     padding: 25px 20px;
