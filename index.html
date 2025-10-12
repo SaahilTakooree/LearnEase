@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="style/header.css">
     <link rel="stylesheet" href="style/auth.css">
     <link rel="stylesheet" href="style/sidebar.css">
+    <link rel="stylesheet" href="style/myLesson.css">
     <title>Learn Ease</title>
 </head>
 
@@ -207,68 +208,211 @@
                     </div>
                     <div class="col-md-10">
                         <div id="mainContent">
-                            <div class="col-md-10 mt-5 content">
+                            <div class="mt-5 content">
                                 <div v-if="currentPage === 'home'">
                                     Home
                                 </div>
                                 <div v-else-if="currentPage === 'lesson'">
-                                    <div class="container pt-4">
-                                        <button class="btn btn-primary mb-3">Add Event</button>
+                                    <div class="lesson-page container pt-4">
+                                        <div v-if="role === 'teacher'">
+                                            <button class="lesson-add btn mb-3" @click.prevent="openAddLesson()">
+                                                Add Lesson
+                                                <i class="fa fa-plus"></i>
+                                            </button>
+                                            <div v-if="showLessonForm" class="mb-3 p-3 border rounded lesson-form">
+                                                <h4>{{ isEditing ? 'Edit Lesson' : 'Add Lesson' }}</h4>
+                                                <form @submit.prevent="submitLesson">
+                                                    <div class="mb-2">
+                                                        <label for="name">Lesson Name</label>
+                                                        <input type="text" class="form-control" id="name"
+                                                            placeholder="Name" v-model="lessonForm.name"
+                                                            @input="validateField('name')" required>
+                                                        <span class="text-danger">{{ errors.name }}</span>
+                                                    </div>
+                                                    <div class="mb-2">
+                                                        <label for="description">Lesson Description</label>
+                                                        <textarea type="text" class="form-control" id="description"
+                                                            placeholder="Description" v-model="lessonForm.description"
+                                                            @input="validateField('description')" required></textarea>
+                                                        <span class="text-danger">{{ errors.description }}</span>
+                                                    </div>
+                                                    <div class="mb-2">
+                                                        <label for="subject">Subject</label>
+                                                        <input type="text" class="form-control" id="subject"
+                                                            v-model="lessonForm.subject" placeholder="Subject"
+                                                            @input="validateField('subject')" required>
+                                                        <span class="text-danger">{{ errors.subject }}</span>
+                                                    </div>
+                                                    <div class="mb-2">
+                                                        <label for="location">Location</label>
+                                                        <input type="text" class="form-control" id="location"
+                                                            v-model="lessonForm.location" placeholder="Location"
+                                                            @input="validateField('location')" required>
+                                                        <span class="text-danger">{{ errors.location }}</span>
+                                                    </div>
+                                                    <div class="mb-2">
+                                                        <label for="space">Total Space</label>
+                                                        <input type="tel" class="form-control" id="space"
+                                                            v-model="lessonForm.space" placeholder="Total Space"
+                                                            @input="validateField('space')" required>
+                                                        <span class="text-danger">{{ errors.space }}</span>
+                                                    </div>
+                                                    <div class="mb-2">
+                                                        <label for="price">Price (Rs)</label>
+                                                        <input type="tel" class="form-control" id="price"
+                                                            v-model="lessonForm.price" placeholder="Price (Rs)"
+                                                            @input="validateField('price')" required>
+                                                        <span class="text-danger">{{ errors.price }}</span>
+                                                    </div>
 
-                                        <div class="mb-3 p-3 border rounded">
-                                            <h4>{{ "Edit Event" }}</h4>
-                                            <form>
-                                                <div class="mb-2">
-                                                    <label for="name">Lesson Name</label>
-                                                    <input type="text" class="form-control" id="name" placeholder="Name"
-                                                        name="name" required>
-                                                </div>
-                                                <div class="mb-2">
-                                                    <label for="description">Lesson Description</label>
-                                                    <textarea type="text" class="form-control" id="description"
-                                                        placeholder="Description" required></textarea>
-                                                </div>
-                                                <div class="mb-2">
-                                                    <label for="subject">Subject</label>
-                                                    <input type="text" class="form-control" id="subject"
-                                                        placeholder="Subject" required>
-                                                </div>
-                                                <div class="mb-2">
-                                                    <label for="location">Location</label>
-                                                    <input type="text" class="form-control" id="location"
-                                                        placeholder="Location" required>
-                                                </div>
-                                                <div class="mb-2">
-                                                    <label for="space">Space avaliable</label>
-                                                    <input type="tel" class="form-control" id="space"
-                                                        placeholder="Space avaliable" required>
-                                                </div>
-                                                <div class="mb-2">
-                                                    <label for="price">Price (Rs)</label>
-                                                    <input type="tel" class="form-control" id="price"
-                                                        placeholder="Price (Rs)" required>
-                                                </div>
-                                                <button type="submit" class="btn btn-success">{{ 'Update' }}</button>
-                                                <button type="button" class="btn btn-secondary ms-2">Cancel</button>
-                                            </form>
+                                                    <div v-if="isEditing">
+                                                        <hr>
+
+                                                        <h5 class="mb-3">Enrolled Students</h5>
+
+                                                        <table class="table table-sm">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Email</th>
+                                                                    <th style="width:120px">Action</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr v-if="lessonForm.students.length === 0">
+                                                                    <td colspan="2">No student has enrolled yet.</td>
+                                                                </tr>
+
+                                                                <tr v-for="student in paginatedStudents"
+                                                                    :key="student.email">
+                                                                    <td>{{ student.email }}</td>
+                                                                    <td>
+                                                                        <button class="btn btn-sm btn-danger"
+                                                                            @click.prevent="removeStudent(student)">
+                                                                            Remove
+                                                                            <i class="fa fa-trash-o"></i>
+                                                                        </button>
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+
+                                                        <div class="mb-3 d-flex justify-content-between align-items-center"
+                                                            v-if="(lessonForm.students || []).length > 0">
+                                                            <div>
+                                                                <small>Showing
+                                                                    {{ Math.min((studentPage-1)*5)+1,
+                                                                    (lessonForm.students.length) }}
+                                                                    -
+                                                                    {{ Math.min(studentPage*5, (lessonForm.students ||
+                                                                    []).length) }}
+                                                                    of {{ (lessonForm.students || []).length }}
+                                                                </small>
+                                                            </div>
+
+                                                            <div>
+                                                                <button class="btn pagination-controls btn-sm me-2"
+                                                                    :disabled="studentPage === 1"
+                                                                    @click.prevent="prevPage">
+                                                                    <i class="fa fa-chevron-left"></i> Previous
+                                                                </button>
+
+                                                                <button class="btn pagination-controls btn-sm"
+                                                                    :disabled="!hasMorePages" @click.prevent="nextPage">
+                                                                    Next <i class="fa fa-chevron-right"></i>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-success">
+                                                        {{ isEditing ? 'Update' : 'Save' }}
+                                                        <i class="fa fa-floppy-o"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-secondary ms-2"
+                                                        @click.prevent="cancelEdit()">
+                                                        Cancel
+                                                        <i class="fa fa-times"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+
+                                            <hr class="mt-2 mb-2">
+
+                                            <h4>My Lesson</h4>
+
+                                            <table class="table table-bordered lesson-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Name</th>
+                                                        <th>Subject</th>
+                                                        <th>Location</th>
+                                                        <th>Total Space</th>
+                                                        <th>Space avaliable</th>
+                                                        <th>Price (Rs)</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr v-if="lessons.length === 0" class="text-center">
+                                                        <td colspan="6">No lessons available.</td>
+                                                    </tr>
+                                                    <tr v-else="lessons.length > 0" v-for="lesson in lessons" :key="lesson.id">
+                                                        <td>{{ lesson.name }}</td>
+                                                        <td>{{ lesson.subject }}</td>
+                                                        <td>{{ lesson.location }}</td>
+                                                        <td>{{ lesson.space }}</td>
+                                                        <td>0</td>
+                                                        <td>{{ lesson.price }}</td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-warning me-2"
+                                                                @click="editLesson(lesson)">
+                                                                Edit
+                                                                <i class="fa fa-pencil"></i>
+                                                            </button>
+                                                            <button class="btn btn-sm btn-danger"
+                                                                @click="removeStudentFromLesson(lesson)">
+                                                                Delete
+                                                                <i class="fa fa-trash"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+
+                                            <hr class="mt-2 mb-2">
                                         </div>
 
-                                        <hr class="mt-2 mb-2">
-
-                                        <h4>Current Lesson</h4>
-
-                                        <table class="table table-bordered">
+                                        <h4>Enrolled Lesson</h4>
+                                        <table class="table table-bordered lesson-table">
                                             <thead>
                                                 <tr>
                                                     <th>Name</th>
+                                                    <th>Description</th>
                                                     <th>Subject</th>
                                                     <th>Location</th>
-                                                    <th>Total Space</th>
-                                                    <th>Space avaliable</th>
-                                                    <th>Price</th>
+                                                    <th>Price (Rs)</th>
+                                                    <th>Action</th>
                                                 </tr>
                                             </thead>
-                                            <tbody></tbody>
+                                            <tbody>
+                                                <tr v-if="lessons.length === 0 " class="text-center">
+                                                    <td colspan="6">Not enrolled in any lesson.</td>
+                                                </tr>
+                                                <tr v-else="lessons.length > 0" v-for="lesson in enrolledLessons"
+                                                    :key="lesson.id">
+                                                    <td>{{ lesson.name }}</td>
+                                                    <td>{{ lesson.description }}</td>
+                                                    <td>{{ lesson.subject }}</td>
+                                                    <td>{{ lesson.location }}</td>
+                                                    <td>{{ lesson.price }}</td>
+                                                    <td>
+                                                        <button class="btn btn-sm btn-danger me-2"
+                                                            @click="editLesson(lesson)">
+                                                            Leave Lesson
+                                                            <i class="fa fa-user-times"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
                                         </table>
                                     </div>
                                 </div>

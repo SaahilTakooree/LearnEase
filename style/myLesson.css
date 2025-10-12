@@ -1,0 +1,96 @@
+.lesson-form {
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow);
+  margin-bottom: 2rem;
+  transition: var(--transition);
+}
+
+.lesson-page h4, .lesson-page h5 {
+  color: var(--color-primary);
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.lesson-form label {
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.lesson-form input, .lesson-form textarea, .lesson-form select {
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.95rem;
+  color: var(--color-text);
+  transition: var(--transition);
+}
+
+.lesson-form input:focus, .lesson-form textarea:focus, .lesson-form select:focus {
+  border-color: var(--color-primary);
+  background-color: var(--color-hover);
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+.lesson-page .lesson-add {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: var(--transition);
+  background-color: var(--color-primary);
+  color: #fff;
+}
+
+.lesson-page .lesson-add:hover {
+  background-color: var(--color-primary-light);
+  color: var(--color-text);
+  transform: translateY(-1px);
+}
+
+
+.lesson-table th {
+  background-color: var(--color-surface);
+  color: var(--color-primary);
+  font-weight: 600;
+  border-bottom: 2px solid var(--color-border);
+  text-align: left;
+}
+
+.lesson-table td {
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.lesson-table tr:hover {
+  background-color: var(--color-hover);
+}
+
+.lesson-table button {
+  font-size: 0.85rem;
+}
+
+.pagination-controls {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.pagination-controls button {
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.pagination-controls button:hover:not(:disabled) {
+  background-color: var(--color-hover);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.pagination-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
