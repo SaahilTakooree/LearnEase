@@ -78,6 +78,7 @@
   color: var(--color-primary);
   text-decoration: none;
   transition: color 0.2s;
+  cursor: pointer;
 }
 
 .right-box a:hover {
