@@ -67,13 +67,13 @@
                                 </div>
                                 <div>
                                     <small>
-                                        <a href="" @click.prevent="switchForm('reset')">Forget Password</a>
+                                        <a href="" v-on:click.prevent="switchForm('reset')">Forget Password</a>
                                     </small>
                                 </div>
                             </div>
 
                             <div class="input-group mb-3">
-                                <button class="btn btn-lg w-100 fs-6" @click.prevent="submitAction">
+                                <button class="btn btn-lg w-100 fs-6" v-on:click.prevent="submitAction">
                                     {{ actionText }}
                                 </button>
                             </div>
@@ -81,19 +81,19 @@
                             <div class="d-flex justify-content-between">
                                 <div>
                                     <small v-if="currentForm === 'login'">Don't have an account?
-                                        <a href="" @click.prevent="switchForm('signup')">Sign Up</a>
+                                        <a href="" v-on:click.prevent="switchForm('signup')">Sign Up</a>
                                     </small>
                                     <small v-else-if="currentForm === 'signup'">Already have an account?
-                                        <a href="" @click.prevent="switchForm('login')">Login</a>
+                                        <a href="" v-on:click.prevent="switchForm('login')">Login</a>
                                     </small>
                                     <small v-else-if="currentForm === 'reset'">
                                         Remember your password?
-                                        <a href="" @click.prevent="switchForm('login')">Login</a>
+                                        <a href="" v-on:click.prevent="switchForm('login')">Login</a>
                                     </small>
                                 </div>
                                 <div>
                                     <small>
-                                        <a href="" @click.prevent="handleAuthBack()">Go Back</a>
+                                        <a href="" v-on:click.prevent="handleAuthBack()">Go Back</a>
                                     </small>
                                 </div>
                             </div>
@@ -107,7 +107,7 @@
         <div v-else>
             <header id="header" class="navbar navbar-expand-lg fixed-top shadow-sm">
                 <div class="container-fluid">
-                    <a class="navbar-brand d-flex align-items-center" href="">
+                    <a class="navbar-brand d-flex align-items-center" href="" v-on:click.prevent="setPage('home')">
                         <img src="assets/LearnEaseLogo.png" width="50" height="50" class="me-2" alt="Logo">
                         <span class="d-none d-lg-inline">Learn Ease</span>
                     </a>
@@ -115,38 +115,33 @@
                     <div class="collapse navbar-collapse" id="navbarContent">
                         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                             <li class="nav-item">
-                                <a class="nav-link" :class="{ active: currentPage === 'home' }"
-                                    @click.prevent="setPage('home')">
+                                <button class="nav-link btn-link" :class="{ active: currentPage === 'home' }"
+                                    v-on:click.prevent="setPage('home')">
                                     Home
                                     <i class="fa fa-home"></i>
-                                </a>
+                                </button>
                             </li>
 
                             <li class="nav-item">
-                                <a class="nav-link" :class="{ active: currentPage === 'lesson' }"
-                                    @click.prevent="setPage('lesson')">
+                                <button class="nav-link btn-link" :class="{ active: currentPage === 'lesson' }"
+                                    v-on:click.prevent="setPage('lesson')">
                                     My Lesson
                                     <i class="fa fa-book"></i>
-                                </a>
+                                </button>
                             </li>
 
                             <li class="nav-item">
-                                <a class="nav-link" :class="{ active: currentPage === 'checkout' }"
-                                    @click.prevent="setPage('checkout')">
-                                    Checkout
+                                <button class="nav-link btn-link" :class="{ active: currentPage === 'shoppingCart' }"
+                                    v-on:click.prevent="toggleCartPage"
+                                    :disabled="cart.length === 0"
+                                    :title="cart.length === 0 ? 'Cart is empty. Add items to checkout.' : ''">
+                                    Shopping Cart
                                     <i class="fa fa-shopping-cart"></i>
-                                </a>
-                            </li>
-
-                            <li class="nav-item ms-lg-3">
-                                <label class="btn-toggle nav-link">
-                                    <input type="checkbox" id="toggleDarkMode" @change="toggleDarkMode">
-                                    Dark Mode
-                                </label>
+                                </button>
                             </li>
 
                             <li class="nav-item d-md-none">
-                                <button v-if="!isSignin" class="m-3 d-none d-md-block" @click.prevent="openAuthForm()">
+                                <button v-if="!isSignin" class="m-3 d-none d-md-block" v-on:click.prevent="openAuthForm()">
                                     Sign In
                                 </button>
                                 <span v-else class="ms-3 d-none d-md-block">Hi Meharsing Takooree!!</span>
@@ -161,7 +156,7 @@
                     </form>
 
                     <div>
-                        <button v-if="!isSignin" class="m-3 d-none d-md-block" @click.prevent="openAuthForm()">
+                        <button v-if="!isSignin" class="m-3 d-none d-md-block" v-on:click.prevent="openAuthForm()">
                             Sign In
                         </button>
                         <span v-else class="ms-3 d-none d-md-block">Hi Meharsing Takooree!!</span>
@@ -181,7 +176,7 @@
                     <div class="col-md-2">
                         <aside id="sidebar">
                             <div class="sort-section">
-                                <button v-if="isSmallScreen" class="btn" @click.prevent="toggleFilters">
+                                <button v-if="isSmallScreen" class="btn" v-on:click.prevent="toggleFilters">
                                     {{ showFilters ? 'Hide Filters' : 'Show Filters' }}
                                 </button>
                                 <div v-show="showFilters">
@@ -212,19 +207,18 @@
                             <div class="mt-5 content">
                                 <div v-if="currentPage === 'home'">
                                     <div class="container-fluid mt-4 pt-4">
-                                        <div class="cart-item card shadow-sm mb-3" v-for="lesson in lessons"
-                                            :key="lesson.id">
+                                        <div class="cart-item card shadow-sm mb-3" v-for="lesson in lessons" :key="lesson.id">
                                             <div class="row">
                                                 <div
-                                                    class="col-4 col-md-3 cart-image-container d-flex align-items-center justify-content-center">
+                                                    class="col-5 col-md-3 cart-image-container d-flex align-items-center justify-content-center">
                                                     <!-- <i class="fa fa-book cart-icon"></i> -->
                                                     <img src="assets/LearnEaseLogo.png" class="img-fluid auth-img">
                                                 </div>
 
-                                                <div class="col-8 col-md-9 p-3 d-flex flex-column cart-details">
-                                                    <div class="lesson-title">{{ lesson.name }}</div>
+                                                <div class="col-7 col-md-9 p-3 d-flex flex-column cart-details">
+                                                    <div class="lesson-title" :title="lesson.name">{{ lesson.name }}</div>
 
-                                                    <div class="lesson-desc">{{ lesson.description }}</div>
+                                                    <div class="lesson-desc"  :title="lesson.description">{{ lesson.description }}</div>
 
                                                     <div class="mt-2 d-flex gap-2 flex-wrap">
                                                         <div class="text-secondary subject-text">
@@ -233,24 +227,36 @@
                                                     </div>
 
                                                     <div class="price-location mt-auto">
-                                                        <span class="badge bg-success">Spaces Available: {{
-                                                            lesson.students.length }}/{{ lesson.space}}</span>
+                                                        <span :class="['badge', getAvailabilityClass(lesson)]">
+                                                            Spaces Available: {{ getRemainingSpace(lesson) }} / {{ lesson.space }}
+                                                            <br>
+                                                            <span>{{ getAvailabilityText(lesson) }}</span>
+                                                        </span>
+
                                                         <div class="fw-bold">Rs {{ lesson.price }}</div>
                                                         <div class="text-secondary small">Location: Port Louis</div>
                                                     </div>
 
                                                     <div class="mt-2">
                                                         <div v-if="!getCartItem(lesson)">
-                                                            <button class="btn btn-primary btn-sm"
-                                                                @click="addToCart(lesson)">Add to cart</button>
+                                                            <button
+                                                                class="btn btn-sm d-flex justify-content-center align-items-center"
+                                                                v-on:click="addToCart(lesson)">
+                                                                Add to cart
+                                                            </button>
                                                         </div>
-                                                        <div v-else class="d-inline-block cart-counter" @click.stop>
-                                                            <span
-                                                                class="btn btn-sm btn-outline-secondary d-flex align-items-center">
-                                                                <i class="fa fa-trash me-1" v-if="cart.find(c => c.lessonId === lesson.id).quantity === 1" @click.stop="removeFromCart(lesson)"></i>
-                                                                <i class="fa fa-minus me-1" v-if="cart.find(c => c.lessonId === lesson.id).quantity > 1" @click.stop="decreaseQuantity(lesson)"></i>
-                                                                <span class="mx-1">{{ getCartItem(lesson).quantity }}</span>
-                                                                <i class="fa fa-plus ms-1" @click.stop="increaseQuantity(lesson)"></i>
+                                                        <div v-else class="d-inline-block">
+                                                            <span class="cart-counter-span">
+                                                                <i class="fa fa-trash me-1"
+                                                                    v-if="cart.find(c => c.lessonId === lesson.id).quantity === 1"
+                                                                    v-on:click.stop="removeFromCart(lesson)"></i>
+                                                                <i class="fa fa-minus me-1"
+                                                                    v-if="cart.find(c => c.lessonId === lesson.id).quantity > 1"
+                                                                    v-on:click.stop="decreaseQuantity(lesson)"></i>
+                                                                {{ getCartItem(lesson).quantity }}
+                                                                <i class="fa fa-plus ms-1"
+                                                                    :class="{ 'text-muted': getRemainingSpace(lesson) === 0 }"
+                                                                    v-on:click.stop="increaseQuantity(lesson)"></i>
                                                             </span>
                                                         </div>
                                                     </div>
@@ -262,7 +268,7 @@
                                 <div v-else-if="currentPage === 'lesson'">
                                     <div class="lesson-page container pt-4">
                                         <div v-if="role === 'teacher'">
-                                            <button class="lesson-add btn mb-3" @click.prevent="openAddLesson()">
+                                            <button class="lesson-add btn mb-3" v-on:click.prevent="openAddLesson()">
                                                 Add Lesson
                                                 <i class="fa fa-plus"></i>
                                             </button>
@@ -334,7 +340,7 @@
                                                                     <td>{{ student.email }}</td>
                                                                     <td>
                                                                         <button class="btn btn-sm btn-danger"
-                                                                            @click.prevent="removeStudent(student)">
+                                                                            v-on:click.prevent="removeStudent(student)">
                                                                             Remove
                                                                             <i class="fa fa-trash-o"></i>
                                                                         </button>
@@ -359,12 +365,12 @@
                                                             <div>
                                                                 <button class="btn pagination-controls btn-sm me-2"
                                                                     :disabled="studentPage === 1"
-                                                                    @click.prevent="prevPage">
+                                                                    v-on:click.prevent="prevPage">
                                                                     <i class="fa fa-chevron-left"></i> Previous
                                                                 </button>
 
                                                                 <button class="btn pagination-controls btn-sm"
-                                                                    :disabled="!hasMorePages" @click.prevent="nextPage">
+                                                                    :disabled="!hasMorePages" v-on:click.prevent="nextPage">
                                                                     Next <i class="fa fa-chevron-right"></i>
                                                                 </button>
                                                             </div>
@@ -375,7 +381,7 @@
                                                         <i class="fa fa-floppy-o"></i>
                                                     </button>
                                                     <button type="button" class="btn btn-secondary ms-2"
-                                                        @click.prevent="cancelEdit()">
+                                                        v-on:click.prevent="cancelEdit()">
                                                         Cancel
                                                         <i class="fa fa-times"></i>
                                                     </button>
@@ -412,12 +418,12 @@
                                                         <td>{{ lesson.price }}</td>
                                                         <td>
                                                             <button class="btn btn-sm btn-warning me-2"
-                                                                @click="editLesson(lesson)">
+                                                                v-on:click="editLesson(lesson)">
                                                                 Edit
                                                                 <i class="fa fa-pencil"></i>
                                                             </button>
                                                             <button class="btn btn-sm btn-danger"
-                                                                @click="removeStudentFromLesson(lesson)">
+                                                                v-on:click="removeStudentFromLesson(lesson)">
                                                                 Delete
                                                                 <i class="fa fa-trash"></i>
                                                             </button>
@@ -454,7 +460,7 @@
                                                     <td>{{ lesson.price }}</td>
                                                     <td>
                                                         <button class="btn btn-sm btn-danger me-2"
-                                                            @click="editLesson(lesson)">
+                                                            v-on:click="editLesson(lesson)">
                                                             Leave Lesson
                                                             <i class="fa fa-user-times"></i>
                                                         </button>
@@ -464,8 +470,8 @@
                                         </table>
                                     </div>
                                 </div>
-                                <div v-else-if="currentPage === 'checkout'">
-                                    Checkout
+                                <div v-else-if="currentPage === 'shoppingCart'">
+                                    Shopping Cart
                                 </div>
                             </div>
                         </div>

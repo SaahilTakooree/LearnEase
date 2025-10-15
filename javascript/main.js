@@ -91,18 +91,18 @@ new Vue({
         isEditing: false,
         showLessonForm: false,
         studentPage: 1,
-        // Checkout
+        // Shopping cart.
         cart: []
     },
     methods: {
         setPage(page) {
             this.currentPage = page
         },
-        toggleDarkMode(event) {
-            if (event.target.checked) {
-                document.body.classList.add('dark');
-            } else {
-                document.body.classList.remove('dark');
+        toggleCartPage() {
+            if (this.currentPage === 'shoppingCart') {
+                this.currentPage = 'home';
+            } else if (this.cart.length > 0) {
+                this.currentPage = 'shoppingCart';
             }
         },
         openAddLesson() {
@@ -295,9 +295,12 @@ new Vue({
             }
         },
         increaseQuantity(lesson) {
-            const item = this.cart.find(c => c.lessonId === lesson.id);
-            if (item) {
-                item.quantity++;
+            const remaining = this.getRemainingSpace(lesson);
+            if (remaining > 0) {
+                const item = this.cart.find(c => c.lessonId === lesson.id);
+                if (item) {
+                    item.quantity++;
+                }
             }
         },
         decreaseQuantity(lesson) {
@@ -315,6 +318,29 @@ new Vue({
         },
         getCartItem(lesson) {
             return this.cart.find(c => c.lessonId === lesson.id);
+        },
+        getAvailabilityText(lesson) {
+            const remaining = this.getRemainingSpace(lesson);
+
+            if (remaining <= 0) {
+                return 'Sold Out';
+            } else if (remaining <= 5) {
+                return `Only ${remaining} spot${remaining > 1 ? 's' : ''} left`;
+            } else {
+                return 'Buy Now';
+            }
+        },
+        getAvailabilityClass(lesson) {
+            const remaining = this.getRemainingSpace(lesson);
+
+            if (remaining <= 0) return 'bg-danger';
+            if (remaining <= 5) return 'bg-warning text-dark';
+            return 'bg-success';
+        },
+        getRemainingSpace(lesson) {
+            const cartItem = this.cart.find(c => c.lessonId === lesson.id);
+            const currentTaken = lesson.students.length + (cartItem ? cartItem.quantity : 0);
+            return lesson.space - currentTaken;
         }
     },
     computed: {

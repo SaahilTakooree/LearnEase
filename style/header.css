@@ -16,7 +16,7 @@ header.navbar {
 
 .navbar-brand img {
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 .navbar-nav .nav-item {
@@ -30,7 +30,8 @@ header.navbar {
   font-weight: 500;
 }
 
-.navbar-nav .nav-link:hover, .navbar-nav .nav-link.active {
+.navbar-nav .nav-link:hover,
+.navbar-nav .nav-link.active {
   background: var(--color-hover);
   color: var(--color-primary);
 }
@@ -39,12 +40,6 @@ header.navbar {
   display: flex;
   align-items: center;
   gap: 0.3rem;
-  cursor: pointer;
-}
-
-#toggleDarkMode {
-  accent-color: var(--color-primary);
-  transform: scale(1.1);
   cursor: pointer;
 }
 
@@ -97,12 +92,36 @@ header > div:last-child span {
   color: var(--color-primary);
 }
 
+.navbar-nav .nav-link.btn, .navbar-nav .nav-link.btn-link {
+  background: none;
+  border: none;
+  padding: 0.5rem 0.8rem;
+  color: var(--color-text);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.navbar-nav .nav-link.btn:hover, .navbar-nav .nav-link.btn.active, .navbar-nav .nav-link.btn-link:hover, .navbar-nav .nav-link.btn-link.active {
+  background: var(--color-hover);
+  color: var(--color-primary);
+}
+
+.navbar-nav .nav-link.btn-link:disabled {
+  cursor: not-allowed;
+  color: var(--color-text-muted, #aaa);
+  opacity: 0.6;
+}
+
+.navbar-nav .nav-link.btn-link:disabled i {
+  color: inherit;
+}
+
 @media (max-width: 991px) {
   .search-form {
     max-width: 100%;
     margin: 0.5rem 0;
   }
-  
+
   .navbar-nav .nav-item {
     margin-right: 0;
     margin-bottom: 0.5rem;
