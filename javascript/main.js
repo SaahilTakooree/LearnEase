@@ -16,7 +16,7 @@ new Vue({
         role: "teacher",
         email: "test1@gmail.com",
         // Main page data.
-        currentPage: "lesson",
+        currentPage: "home",
         // My lesson page.
         lessons: [
             {
@@ -35,6 +35,40 @@ new Vue({
                     { email: "test5@gmail.com" },
                     { email: "test6@gmail.com" }
                 ]
+            },
+            {
+                id: 2,
+                name: 'English for beginners',
+                description: 'English intro lesson',
+                subject: 'English',
+                location: 'Room 102',
+                space: 10,
+                price: 300,
+                students: [
+                    { email: "test7@gmail.com" },
+                    { email: "test8@gmail.com" },
+                    { email: "test9@gmail.com" },
+                    { email: "test10@gmail.com" },
+                    { email: "test11@gmail.com" },
+                    { email: "test12@gmail.com" }
+                ]
+            },
+            {
+                id: 3,
+                name: 'French',
+                description: "Omelette au fromage",
+                subject: 'French',
+                location: 'Room 65',
+                space: 17,
+                price: 360,
+                students: [
+                    { email: "test13@gmail.com" },
+                    { email: "test14@gmail.com" },
+                    { email: "test15@gmail.com" },
+                    { email: "test16@gmail.com" },
+                    { email: "test17@gmail.com" },
+                    { email: "test18@gmail.com" }
+                ]
             }
         ],
         lessonForm: {
@@ -43,7 +77,8 @@ new Vue({
             subject: '',
             location: '',
             space: '',
-            price: ''
+            price: '',
+            student: [],
         },
         errors: {
             name: '',
@@ -55,7 +90,9 @@ new Vue({
         },
         isEditing: false,
         showLessonForm: false,
-        studentPage: 1
+        studentPage: 1,
+        // Checkout
+        cart: []
     },
     methods: {
         setPage(page) {
@@ -250,6 +287,34 @@ new Vue({
             if (textOptions.length > 0) {
                 this.sortAttribute = textOptions[0].value;
             }
+        },
+        addToCart(lesson) {
+            const item = this.cart.find(c => c.lessonId === lesson.id);
+            if (!item) {
+                this.cart.push({ lessonId: lesson.id, quantity: 1 });
+            }
+        },
+        increaseQuantity(lesson) {
+            const item = this.cart.find(c => c.lessonId === lesson.id);
+            if (item) {
+                item.quantity++;
+            }
+        },
+        decreaseQuantity(lesson) {
+            const item = this.cart.find(c => c.lessonId === lesson.id);
+            if (item) {
+                if (item.quantity > 1) {
+                    item.quantity--;
+                } else {
+                    this.removeFromCart(lesson);
+                }
+            }
+        },
+        removeFromCart(lesson) {
+            this.cart = this.cart.filter(c => c.lessonId !== lesson.id);
+        },
+        getCartItem(lesson) {
+            return this.cart.find(c => c.lessonId === lesson.id);
         }
     },
     computed: {

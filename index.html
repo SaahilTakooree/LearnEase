@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="style/auth.css">
     <link rel="stylesheet" href="style/sidebar.css">
     <link rel="stylesheet" href="style/myLesson.css">
+    <link rel="stylesheet" href="style/card.css">
     <title>Learn Ease</title>
 </head>
 
@@ -32,7 +33,7 @@
                             <img src="assets/LearnEaseLogo.png" class="img-fluid auth-img">
                         </div>
                         <h3 class="f2-2">{{ leftTitle }}</h3>
-                        <small class="text-wrap text-center slogan">{{ leftSlogan }}</small>
+                        <small class="text-wrap text-center slogan text-muted small">{{ leftSlogan }}</small>
                     </div>
 
                     <div class="col-md-6 right-box">
@@ -210,7 +211,53 @@
                         <div id="mainContent">
                             <div class="mt-5 content">
                                 <div v-if="currentPage === 'home'">
-                                    Home
+                                    <div class="container-fluid mt-4 pt-4">
+                                        <div class="cart-item card shadow-sm mb-3" v-for="lesson in lessons"
+                                            :key="lesson.id">
+                                            <div class="row">
+                                                <div
+                                                    class="col-4 col-md-3 cart-image-container d-flex align-items-center justify-content-center">
+                                                    <!-- <i class="fa fa-book cart-icon"></i> -->
+                                                    <img src="assets/LearnEaseLogo.png" class="img-fluid auth-img">
+                                                </div>
+
+                                                <div class="col-8 col-md-9 p-3 d-flex flex-column cart-details">
+                                                    <div class="lesson-title">{{ lesson.name }}</div>
+
+                                                    <div class="lesson-desc">{{ lesson.description }}</div>
+
+                                                    <div class="mt-2 d-flex gap-2 flex-wrap">
+                                                        <div class="text-secondary subject-text">
+                                                            Subject: <span>{{ lesson.subject }}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="price-location mt-auto">
+                                                        <span class="badge bg-success">Spaces Available: {{
+                                                            lesson.students.length }}/{{ lesson.space}}</span>
+                                                        <div class="fw-bold">Rs {{ lesson.price }}</div>
+                                                        <div class="text-secondary small">Location: Port Louis</div>
+                                                    </div>
+
+                                                    <div class="mt-2">
+                                                        <div v-if="!getCartItem(lesson)">
+                                                            <button class="btn btn-primary btn-sm"
+                                                                @click="addToCart(lesson)">Add to cart</button>
+                                                        </div>
+                                                        <div v-else class="d-inline-block cart-counter" @click.stop>
+                                                            <span
+                                                                class="btn btn-sm btn-outline-secondary d-flex align-items-center">
+                                                                <i class="fa fa-trash me-1" v-if="getCartItem(lesson).quantity === 1" @click.stop="removeFromCart(lesson)"></i>
+                                                                <i class="fa fa-minus me-1" v-if="getCartItem(lesson).quantity > 1" @click.stop="decreaseQuantity(lesson)"></i>
+                                                                <span class="mx-1">{{ getCartItem(lesson).quantity }}</span>
+                                                                <i class="fa fa-plus ms-1" @click.stop="increaseQuantity(lesson)"></i>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div v-else-if="currentPage === 'lesson'">
                                     <div class="lesson-page container pt-4">
@@ -355,7 +402,8 @@
                                                     <tr v-if="lessons.length === 0" class="text-center">
                                                         <td colspan="6">No lessons available.</td>
                                                     </tr>
-                                                    <tr v-else="lessons.length > 0" v-for="lesson in lessons" :key="lesson.id">
+                                                    <tr v-else="lessons.length > 0" v-for="lesson in lessons"
+                                                        :key="lesson.id">
                                                         <td>{{ lesson.name }}</td>
                                                         <td>{{ lesson.subject }}</td>
                                                         <td>{{ lesson.location }}</td>
