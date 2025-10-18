@@ -9,7 +9,6 @@ new Vue({
         sortOptions: [],
         // Auth data.
         currentForm: 'login',
-        email: '',
         password: '',
         confirmPassword: '',
         isSignin: false,
