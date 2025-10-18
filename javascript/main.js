@@ -31,7 +31,7 @@ new Vue({
                     { email: "test1@gmail.com" },
                     { email: "test2@gmail.com" },
                     { email: "test3@gmail.com" },
-                    { email: "test4@gmail.com" },
+                    { email: "test7@gmail.com" },
                     { email: "test5@gmail.com" },
                     { email: "test6@gmail.com" }
                 ]
@@ -92,7 +92,13 @@ new Vue({
         showLessonForm: false,
         studentPage: 1,
         // Shopping cart.
-        cart: []
+        cart: [],
+        checkoutName: "",
+        checkoutPhone: "",
+        isNameValid: false,
+        isPhoneValid: false,
+        isFormValid: false,
+        orderSubmitted: false,
     },
     methods: {
         setPage(page) {
@@ -185,14 +191,15 @@ new Vue({
             this.showLessonForm = true
         },
         deleteLesson(lesson) {
-            const index = this.lessons.findIndex(l => l.id === lesson.id);
-            if (index !== -1) {
-                this.lessons.splice(index, 1);
-            }
-            if (this.lessonForm.id === lesson.id) {
-                this.resetForm();
-                this.isEditing = false;
-            }
+            this.showPopUp({ autoClose: 2000, type: "warning"});
+            // const index = this.lessons.findIndex(l => l.id === lesson.id);
+            // if (index !== -1) {
+            //     this.lessons.splice(index, 1);
+            // }
+            // if (this.lessonForm.id === lesson.id) {
+            //     this.resetForm();
+            //     this.isEditing = false;
+            // }
         },
         cancelEdit() {
             this.resetForm();
@@ -314,7 +321,19 @@ new Vue({
             }
         },
         removeFromCart(lesson) {
-            this.cart = this.cart.filter(c => c.lessonId !== lesson.id);
+            this.showPopUp({
+                message: "Are you sure you want to remove this lesson",
+                buttons: [
+                    {
+                        text: "Remove",
+                        class: "btn btn-danger",
+                        action: () => {
+                            this.cart = this.cart.filter(c => c.lessonId !== lesson.id);
+                        }},
+                    { text: "Cancel", class: "btn btn-secondary", action: null }
+                ]
+
+            });
         },
         getCartItem(lesson) {
             return this.cart.find(c => c.lessonId === lesson.id);
@@ -341,6 +360,87 @@ new Vue({
             const cartItem = this.cart.find(c => c.lessonId === lesson.id);
             const currentTaken = lesson.students.length + (cartItem ? cartItem.quantity : 0);
             return lesson.space - currentTaken;
+        },
+        validateForm() {
+            this.isNameValid = /^[A-Za-z\s]+$/.test(this.checkoutName);
+
+            this.isPhoneValid = /^[0-9]+$/.test(this.checkoutPhone);
+
+            this.isFormValid = this.isNameValid && this.isPhoneValid;
+        },
+        submitOrder() {
+            console.log(this.cart)
+            this.orderSubmitted = true;
+            this.showPopUp({
+                message: "Sucessfully placed order for lesson",
+                autoClose: 1500,
+                type: "success"
+            });
+        },
+        showPopUp({ message = "Do you want to continue?", buttons = null, autoClose = 0, type = null } = {}) {
+            const comfirmationForm = document.createElement('div');
+            comfirmationForm.className = 'comfirmation-form-overlay';
+
+            const content = document.createElement('div');
+
+            const msg = document.createElement('p');
+            msg.textContent = message;
+            content.appendChild(msg);
+
+            if (autoClose > 0) {
+                let iconHTML = '';
+                switch(type) {
+                    case "success":
+                        iconHTML = '<i class="fa fa-check-circle" style="margin-right:0.5rem"></i>';
+                        break;
+                    case "danger":
+                        iconHTML = '<i class="fa fa-times-circle" style="margin-right:0.5rem"></i>';
+                        break;
+                    case "warning":
+                        iconHTML = '<i class="fa fa-exclamation-triangle" style="margin-right:0.5rem"></i>';
+                        break;
+                    default:
+                        iconHTML = '<i class="fa fa-info-circle" style="margin-right:0.5rem"></i>';
+                }
+                content.classList.add("alert", "alert-" + type, "d-flex", "align-items-center", "justify-content-center");
+                
+                content.innerHTML = iconHTML + message;
+                comfirmationForm.appendChild(content);
+                document.body.appendChild(comfirmationForm);
+
+                setTimeout(() => {
+                    if (document.body.contains(comfirmationForm)) {
+                        document.body.removeChild(comfirmationForm);
+                    }
+                }, autoClose);
+
+                return;
+            };
+
+            content.className = 'comfirmation-form-box';
+
+            if (!buttons || buttons.length === 0) {
+                buttons = [
+                    { text: "Yes", class: "btn btn-danger", action: null },
+                    { text: "No", class: "btn btn-secondary", action: null }
+                ];
+            };
+
+            buttons.forEach(button => {
+                const buttonElement = document.createElement("button");
+                buttonElement.textContent = button.text || "Button";
+                buttonElement.className = button.class || "btn btn-secondary";
+                buttonElement.onclick = () => {
+                    document.body.removeChild(comfirmationForm);
+                    if (button.action || typeof button.action === "function") {
+                        button.action();
+                    };
+                };
+                content.appendChild(buttonElement);
+            });
+
+            comfirmationForm.appendChild(content);
+            document.body.appendChild(comfirmationForm);
         }
     },
     computed: {
@@ -380,6 +480,12 @@ new Vue({
         },
         hasMorePages() {
             return this.lessonForm.students.length > this.studentPage * 5;
+        },
+        cartWithLessonDetails() {
+            return this.cart.map(item => {
+                const lesson = this.lessons.find(l => l.id === item.lessonId);
+                return { ...item, ...lesson };
+            });
         }
     },
     mounted() {
