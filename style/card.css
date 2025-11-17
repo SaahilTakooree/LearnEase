@@ -78,12 +78,12 @@
   color: var(--color-primary-light);
 }
 
-.subject-text {
+.topic-text {
     margin-top: 4px;
     font-size: 0.93rem;
 }
 
-.subject-text span {
+.topic-text span {
     font-weight: 600;
     color: #333;
 }
