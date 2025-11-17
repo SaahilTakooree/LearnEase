@@ -5,7 +5,7 @@ new Vue({
         base_url: "http://localhost:6969",
         
         currentUserEmail: "",
-        currentPage: "login",
+        currentPage: "home",
 
         // Sidebar data.
         showFilters: false,
@@ -55,29 +55,33 @@ new Vue({
 
         // Shopping cart.
         cart: [],
-        checkoutName: "",
-        checkoutPhone: "",
-        isNameValid: false,
-        isPhoneValid: false,
-        isFormValid: false,
-        orderSubmitted: false,
+        checkoutForm : {
+            name : "",
+            phone : ""
+        },
+        checkoutErrors: {
+            name : "",
+            phone : ""
+        },
+        isCheckoutFormValid : false,
+        orderSubmitted : false,
     },
     methods: {
         toggleCartPage() {
             // Check if the user is trying to access "shoppingCart" page without sign up.
-            if (!this.isAuth) {
-                // Show a pop-up warning.
-                this.showPopUp({
-                    message: "You need to login first to access this page.",
-                    autoClose: 1000,
-                    type: "warning"
-                }).then(() => {
-                    // Redirect to login page
-                    this.currentForm = 'login';
-                    this.currentPage = 'login';
-                });
-                return;
-            }
+            // if (!this.isAuth) {
+            //     // Show a pop-up warning.
+            //     this.showPopUp({
+            //         message: "You need to login first to access this page.",
+            //         autoClose: 1000,
+            //         type: "warning"
+            //     }).then(() => {
+            //         // Redirect to login page
+            //         this.currentForm = 'login';
+            //         this.currentPage = 'login';
+            //     });
+            //     return;
+            // }
 
             if (this.currentPage === 'shoppingCart') {
                 this.currentPage = 'home';
@@ -152,42 +156,6 @@ new Vue({
         removeStudentFromLesson(lesson) {
             lesson.students = lesson.students.filter(s => s.email !== this.userEmail);
         },
-        openAuthForm() {
-            this.currentForm = 'login';
-            this.currentPage = 'login';
-        },
-        handleAuthBack() {
-            // Clear form & errors on success.
-            this.clearAuthFormFields()
-            this.clearAuthFormSpan();
-
-            if (this.currentForm === 'login') {
-                this.currentPage = 'home';
-                this.$nextTick(() => {
-                    this.adjustMainLayout();
-                });
-            } else if (this.currentForm === 'signup') {
-                this.currentForm = 'login';
-            } else if (this.currentForm === 'reset') {
-                this.currentForm = 'login';
-            }
-        },
-        switchForm(formName) {
-            // Clear form & errors on success.
-            this.clearAuthFormFields();
-            this.clearAuthFormSpan();
-
-            this.currentForm = formName;
-        },
-        submitAction() {
-            if (this.currentForm === "signup") {
-                this.signup()
-            } else if (this.currentForm === "login") {
-                this.login()
-            } if (this.currentForm === "reset") {
-                this.reset()
-            }
-        },
         toggleFilters() {
             this.showFilters = !this.showFilters;
         },
@@ -238,14 +206,42 @@ new Vue({
                 this.sortAttribute = textOptions[0].value;
             }
         },
+        getCartItem(lesson) {
+            return this.cart.find(c => c.lessonId === lesson.id);
+        },
+        submitOrder() {
+            console.log(this.cart)
+            this.orderSubmitted = true;
+            this.showPopUp({
+                message: "Sucessfully placed order for lesson",
+                autoClose: 1500,
+                type: "success"
+            });
+        },
+
+
+
+        // Home page method:
+
+        // Function to add product to cart.
         addToCart(lesson) {
+            const remaining = this.getRemainingSpace(lesson);
+
+            if (remaining <= 0) {
+                return;
+            };
+
             const item = this.cart.find(c => c.lessonId === lesson.id);
+
             if (!item) {
                 this.cart.push({ lessonId: lesson.id, quantity: 1 });
             }
         },
+
+
+        // Function to increase the quanity of an item to cart.
         increaseQuantity(lesson) {
-            const remaining = lesson.availableSpace;
+            const remaining = this.getRemainingSpace(lesson); 
             if (remaining > 0) {
                 const item = this.cart.find(c => c.lessonId === lesson.id);
                 if (item) {
@@ -253,7 +249,11 @@ new Vue({
                 }
             }
         },
+
+
+        // Function to decrease the quanity of item to cart.
         decreaseQuantity(lesson) {
+
             const item = this.cart.find(c => c.lessonId === lesson.id);
             if (item) {
                 if (item.quantity > 1) {
@@ -263,9 +263,12 @@ new Vue({
                 }
             }
         },
+
+
+        // Function to remove the lesson from the cart.
         removeFromCart(lesson) {
             this.showPopUp({
-                message: "Are you sure you want to remove this lesson",
+                message: "Are you sure you want to remove this lesson from cart.",
                 buttons: [
                     {
                         text: "Remove",
@@ -278,11 +281,11 @@ new Vue({
 
             });
         },
-        getCartItem(lesson) {
-            return this.cart.find(c => c.lessonId === lesson.id);
-        },
+
+
+        // Function to know what text that the availability text should be.
         getAvailabilityText(lesson) {
-            const remaining = lesson.availableSpace;
+            const remaining = this.getRemainingSpace(lesson);
 
             if (remaining <= 0) {
                 return 'Sold Out';
@@ -292,28 +295,70 @@ new Vue({
                 return 'Buy Now';
             }
         },
-        getAvailabilityClass(lesson) {
-            const remaining = lesson.availableSpace;
 
-            if (remaining <= 0) return 'bg-danger';
-            if (remaining <= 5) return 'bg-warning text-dark';
+
+        // Function to know what colour that the availability badge should be.
+        getAvailabilityClass(lesson) {
+            const remaining = this.getRemainingSpace(lesson);
+
+            if (remaining <= 0) {
+                return 'bg-danger';
+            }
+            if (remaining <= 5) {
+                return 'bg-warning text-dark';
+            }
             return 'bg-success';
         },
-        validateForm() {
-            this.isNameValid = /^[A-Za-z\s]+$/.test(this.checkoutName);
 
-            this.isPhoneValid = /^[0-9]+$/.test(this.checkoutPhone);
 
-            this.isFormValid = this.isNameValid && this.isPhoneValid;
+
+        // Auth method:
+
+        // Function to handle opening of the auth form
+        openAuthForm() {
+            this.currentForm = 'login';
+            this.currentPage = 'login';
         },
-        submitOrder() {
-            console.log(this.cart)
-            this.orderSubmitted = true;
-            this.showPopUp({
-                message: "Sucessfully placed order for lesson",
-                autoClose: 1500,
-                type: "success"
-            });
+        
+
+        // Function to handle what the back button does in the auth form.
+        handleAuthBack() {
+            // Clear form & errors on success.
+            this.clearAuthFormFields()
+            this.clearAuthFormSpan();
+
+            if (this.currentForm === 'login') {
+                this.currentPage = 'home';
+                this.$nextTick(() => {
+                    this.adjustMainLayout();
+                });
+            } else if (this.currentForm === 'signup') {
+                this.currentForm = 'login';
+            } else if (this.currentForm === 'reset') {
+                this.currentForm = 'login';
+            }
+        },
+
+
+        // Function to switch between different auth form.
+        switchForm(formName) {
+            // Clear form & errors on success.
+            this.clearAuthFormFields();
+            this.clearAuthFormSpan();
+
+            this.currentForm = formName;
+        },
+
+
+        // Function to handle what does the submit button does.
+        submitAction() {
+            if (this.currentForm === "signup") {
+                this.signup()
+            } else if (this.currentForm === "login") {
+                this.login()
+            } if (this.currentForm === "reset") {
+                this.reset()
+            }
         },
 
 
@@ -378,7 +423,7 @@ new Vue({
 
                 // Validate space.
                 case 'space':
-                    if (value === "") {
+                    if (value.trim() === "") {
                         this.errors.space = "Space is required.";
                     } else if (isNaN(value)) {
                         this.errors.space = "Must be a number.";
@@ -402,6 +447,39 @@ new Vue({
                     }
                     break;
             }
+        },
+
+
+        // Validate checkout form;
+        validateCheckoutField(field) {
+            // Get the value of the field.
+            const value = this.checkoutForm[field];
+
+            switch(field) {
+                // Validate name field.
+                case 'name':
+                    if (value.trim() === "") {
+                        this.checkoutErrors.name = "Name is required."
+                    } else if (!/^[A-Za-z\s]+$/.test(value)) {
+                        this.checkoutErrors.name = "Name must contain letters and spaces only.";
+                    } else {
+                        this.checkoutErrors.name = "";
+                    }
+                    break;
+                
+                // Validate phone field.
+                case 'phone':
+                if (value.trim() === "") {
+                    this.checkoutErrors.phone = "Phone number is required.";
+                } else if (isNaN(value)) {
+                    this.checkoutErrors.phone = "Phone number must be a number.";
+                } else if (!/^\+?\d{7,15}$/.test(phone)) {
+                    this.checkoutErrors.phone = "Invalid phone number format.";
+                }
+            }
+
+            // Form is valid if no errors.
+            this.isFormValid =  this.checkoutErrors.name === "" && this.checkoutErrors.phone === "";
         },
 
 
@@ -636,6 +714,14 @@ new Vue({
         },
 
 
+        // Helper function to know the available space left in each lessons. 
+        getRemainingSpace(lesson) {
+            const cartItem = this.cart.find(c => c.lessonId === lesson.id);
+            const quantity = cartItem ? cartItem.quantity : 0;
+            return lesson.space - quantity;
+        },
+
+
         // Helper function to clear all the field in the auth form.
         clearAuthFormFields() {
             this.email = "";
@@ -837,7 +923,7 @@ new Vue({
         window.addEventListener('resize', this.handleResize);
         this.loadSortOptions();
 
-        // Fetch lessons from backend when app loads
+        // Fetch lessons from backend when app loads.
         if (this.currentPage === 'home') {
             this.fetchLessons();
         }

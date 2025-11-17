@@ -208,8 +208,7 @@
                                             <div class="row">
                                                 <div
                                                     class="col-5 col-md-3 cart-image-container d-flex align-items-center justify-content-center">
-                                                    <!-- <i class="fa fa-book cart-icon"></i> -->
-                                                    <img src="assets/LearnEaseLogo.png" class="img-fluid auth-img">
+                                                    <img v-bind:src="base_url + lesson.image" class="img-fluid auth-img">
                                                 </div>
 
                                                 <div class="col-7 col-md-9 p-3 d-flex flex-column cart-details">
@@ -227,14 +226,14 @@
 
                                                     <div class="price-location mt-auto">
                                                         <span :class="['badge', getAvailabilityClass(lesson)]">
-                                                            Spaces Available: {{ lesson.availableSpace }} / {{
+                                                            Spaces Available: {{ getRemainingSpace(lesson) }} / {{
                                                             lesson.space }}
                                                             <br>
                                                             <span>{{ getAvailabilityText(lesson) }}</span>
                                                         </span>
 
                                                         <div class="fw-bold">Rs {{ lesson.price }}</div>
-                                                        <div class="text-secondary small">Location: Port Louis</div>
+                                                        <div class="text-secondary small">Location: {{ lesson.location }}</div>
                                                     </div>
 
                                                     <div class="mt-2">
@@ -256,7 +255,7 @@
                                                                     v-on:click.stop="decreaseQuantity(lesson)"></i>
                                                                 {{ getCartItem(lesson).quantity }}
                                                                 <i class="fa fa-plus ms-1"
-                                                                    :class="{ 'text-muted': lesson.availableSpace === 0 }"
+                                                                    :class="{ 'text-muted': getRemainingSpace(lesson) === 0 }"
                                                                     v-on:click.stop="increaseQuantity(lesson)"></i>
                                                             </span>
                                                         </div>
@@ -507,18 +506,22 @@
                                     <div class="mt-4" v-if="cart.length > 0">
                                         <h4>Checkout</h4>
                                         <div class="mb-3">
-                                            <label class="form-label">Name:</label>
-                                            <input type="text" class="form-control" v-model="checkoutName" @input="validateForm">
-                                            <small class="text-danger" v-if="!isNameValid">Name must contain only letters.</small>
+                                            <label for="checkoutName" class="form-label">Name:</label>
+                                            <input type="text" class="form-control" id="checkoutName"
+                                            placeholder="Name" v-model="checkoutForm.name"
+                                            @input="validateCheckoutField('name')" required>
+                                            <small class="text-danger">{{ checkoutErrors.name }}</small>
                                         </div>
 
                                         <div class="mb-3">
-                                            <label class="form-label">Phone:</label>
-                                            <input type="text" class="form-control" v-model="checkoutPhone" @input="validateForm">
-                                            <small class="text-danger" v-if="!isPhoneValid">Phone must contain only numbers.</small>
+                                            <label for="checkoutPhone" class="form-label">Phone:</label>
+                                            <input type="text" class="form-control" id="checkoutPhone"
+                                            placeholder="Phone" v-model="checkoutForm.phone"
+                                            @input="validateCheckoutField('phone')" required>
+                                            <small class="text-danger">{{ checkoutErrors.phone }}</small>
                                         </div>
 
-                                        <button class="btn btn-success" :disabled="!isFormValid" v-on:click="submitOrder">
+                                        <button class="btn btn-success" :disabled="!isCheckoutFormValid" v-on:click="submitOrder">
                                             Confirm Order
                                         </button>
                                     </div>
