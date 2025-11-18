@@ -4,7 +4,7 @@ new Vue({
         // API base URL.
         base_url: "http://localhost:6969",
         
-        currentUserEmail: "",
+        currentUserEmail: "student@gmail.com",
         currentPage: "home",
 
         // Sidebar data.
@@ -31,24 +31,38 @@ new Vue({
 
         // My lesson page.
         taughtLessons: [],
-        enrolledLesson: [],
+        enrolledLessons: [],
         lessonForm: {
-            name: '',
-            description: '',
-            topic: '',
-            location: '',
-            space: '',
-            price: '',
+            name: "",
+            description: "",
+            topic: "",
+            location: "",
+            space: "",
+            price: "",
+            image: 'Other',
             student: [],
         },
-        errors: {
-            name: '',
-            description: '',
-            topic: '',
-            location: '',
-            space: '',
-            price: ''
+        lessonErrors: {
+            name: "",
+            description: "",
+            topic: "",
+            location: "",
+            space: "",
+            price: "",
+            image: ""
         },
+        imageOptions: [
+            { name: 'Art', file: 'art.jpeg' },
+            { name: 'Biology', file: 'biology.jpeg' },
+            { name: 'Chemistry', file: 'chemistry.jpeg' },
+            { name: 'Computer', file: 'computer.jpeg' },
+            { name: 'History', file: 'history.jpeg' },
+            { name: 'Math', file: 'math.jpeg' },
+            { name: 'Music', file: 'music.jpeg' },
+            { name: 'PE', file: 'pe.jpeg' },
+            { name: 'Other', file: 'other.jpeg' },
+            { name: 'Physics', file: 'physics.jpeg' }
+        ],
         isEditing: false,
         showLessonForm: false,
         studentPage: 1,
@@ -89,73 +103,8 @@ new Vue({
                 this.currentPage = 'shoppingCart';
             }
         },
-        openAddLesson() {
-            this.resetForm();
-            this.isEditing = false;
-            this.showLessonForm = true
-        },
-        resetForm() {
-            this.lessonForm = {
-                id: null,
-                name: '',
-                description: '',
-                topic: '',
-                location: '',
-                space: '',
-                price: ''
-            };
-            this.errors = {
-                name: '',
-                description: '',
-                topic: '',
-                location: '',
-                space: '',
-                price: ''
-            }
-            this.isEditing = false;
-        },
-        submitLesson() {
-            Object.keys(this.lessonForm).forEach(
-                field => this.validateLessonField(field)
-            );
-            const hasError = Object.values(this.errors).some(e => e !== '');
-            if (hasError) {
-                return;
-            };
-            this.resetForm();
-        },
-        editLesson(lesson) {
-            this.resetForm();
-            this.lessonForm = { ...lesson };
-            this.isEditing = true;
-            this.showLessonForm = true
-        },
-        deleteLesson(lesson) {
-            this.showPopUp({ autoClose: 2000, type: "warning"});
-        },
-        cancelEdit() {
-            this.resetForm();
-            this.isEditing = false;
-            this.showLessonForm = false;
-        },
-        nextPage() {
-            const total = this.lessonForm.students.length;
-            const maxPage = Math.ceil(total / 5);
-            if (this.studentPage < maxPage) {
-                this.studentPage++;
-            }
-        },
-        prevPage() {
-            if (this.studentPage > 1) {
-                this.studentPage--;
-            }
-        },
-        removeStudent(student) {
-            this.lessonForm.students = this.lessonForm.students.filter(s => s.email !== student.email);
-        },
-        removeStudentFromLesson(lesson) {
-            lesson.students = lesson.students.filter(s => s.email !== this.userEmail);
-        },
+
+
         toggleFilters() {
             this.showFilters = !this.showFilters;
         },
@@ -206,11 +155,9 @@ new Vue({
                 this.sortAttribute = textOptions[0].value;
             }
         },
-        getCartItem(lesson) {
-            return this.cart.find(c => c.lessonId === lesson.id);
-        },
+        
+
         submitOrder() {
-            console.log(this.cart)
             this.orderSubmitted = true;
             this.showPopUp({
                 message: "Sucessfully placed order for lesson",
@@ -231,10 +178,10 @@ new Vue({
                 return;
             };
 
-            const item = this.cart.find(c => c.lessonId === lesson.id);
+            const item = this.cart.find(c => c.lessonId === lesson._id);
 
             if (!item) {
-                this.cart.push({ lessonId: lesson.id, quantity: 1 });
+                this.cart.push({ lessonId: lesson._id, quantity: 1 });
             }
         },
 
@@ -243,7 +190,7 @@ new Vue({
         increaseQuantity(lesson) {
             const remaining = this.getRemainingSpace(lesson); 
             if (remaining > 0) {
-                const item = this.cart.find(c => c.lessonId === lesson.id);
+                const item = this.cart.find(c => c.lessonId === lesson._id);
                 if (item) {
                     item.quantity++;
                 }
@@ -254,7 +201,7 @@ new Vue({
         // Function to decrease the quanity of item to cart.
         decreaseQuantity(lesson) {
 
-            const item = this.cart.find(c => c.lessonId === lesson.id);
+            const item = this.cart.find(c => c.lessonId === lesson._id);
             if (item) {
                 if (item.quantity > 1) {
                     item.quantity--;
@@ -274,7 +221,7 @@ new Vue({
                         text: "Remove",
                         class: "btn btn-danger",
                         action: () => {
-                            this.cart = this.cart.filter(c => c.lessonId !== lesson.id);
+                            this.cart = this.cart.filter(c => c.lessonId !== lesson._id);
                         }},
                     { text: "Cancel", class: "btn btn-secondary", action: null }
                 ]
@@ -308,6 +255,12 @@ new Vue({
                 return 'bg-warning text-dark';
             }
             return 'bg-success';
+        },
+
+
+        // Function get the number of item in a cart.
+        getCartItem(lesson) {
+            return this.cart.find(c => c.lessonId === lesson._id);
         },
 
 
@@ -351,15 +304,216 @@ new Vue({
 
 
         // Function to handle what does the submit button does.
-        submitAction() {
+        async submitAction() {
             if (this.currentForm === "signup") {
-                this.signup()
+                await this.signup()
             } else if (this.currentForm === "login") {
-                this.login()
+                await this.login()
             } if (this.currentForm === "reset") {
-                this.reset()
+                await this.reset()
             }
         },
+
+
+
+        // My Lesson page method.
+
+        // Function to open the lesson form.
+        openLessonForm() {
+            this.resetLessonForm();
+            this.isEditing = false;
+            this.showLessonForm = true
+        },
+
+
+        // Function to submit or update the 
+        async submitLesson() {
+            // Check if the there are any invalid field.
+            Object.keys(this.lessonForm).forEach(
+                field => this.validateLessonField(field)
+            );
+            const hasError = Object.values(this.lessonErrors).some(error => error !== '');
+            if (hasError) {
+                return;
+            };
+
+            // Show confirmation popup before submitting.
+            const confirm = await this.showPopUp({
+                message: this.isEditing
+                    ? "Are you sure you want to update this lesson?"
+                    : "Are you sure you want to add this lesson?",
+                buttons: [
+                    {
+                        text: "Yes",
+                        class: "btn btn-danger",
+                        action: () => true
+                    },
+                    {
+                        text: "Cancel",
+                        class: "btn btn-secondary",
+                        action: () => false
+                    }
+                ]
+            });
+
+            // If user clicked "Cancel", do nothing
+            if (!confirm) {
+                return;
+            }
+
+            // Prepare JSON data
+            const lessonData = {
+                name: this.lessonForm.name,
+                description: this.lessonForm.description,
+                topic: this.lessonForm.topic,
+                location: this.lessonForm.location,
+                space: Number(this.lessonForm.space),
+                price: Number(this.lessonForm.price),
+                image: this.lessonForm.image
+            };
+
+            if (this.isEditing) {
+                await this.updateLesson(lessonData, null)
+                // Show an alret to the user.
+                await this.showPopUp({
+                    message: "Lesson Updated Successful.",
+                    autoClose: 1000,
+                    type: "success"
+                });
+            } else {
+                lessonData.createdBy = this.currentUserEmail; 
+                await this.addLesson(lessonData)
+            }
+        },
+
+
+        // Function to start the editing process by populating the lesson form.
+        editLesson(lesson) {
+            this.resetLessonForm();
+            this.lessonForm = { ...lesson };
+            this.isEditing = true;
+            this.showLessonForm = true
+        },
+
+
+        // Function to remove a student from a lesson.
+        async removeStudentFromStudent(student = {}, lesson = {}) {
+
+            const confirmDelete = await this.showPopUp({
+                message: "Are you sure you want remove this student from this lesson?",
+                buttons: [
+                    {
+                        text: "Delete",
+                        class: "btn btn-danger",
+                        action: () => true
+                    },
+                    {
+                        text: "Cancel",
+                        class: "btn btn-secondary",
+                        action: () => false
+                    }
+                ]
+            });
+
+            // User cancelled.
+            if (!confirmDelete) {
+                return;
+            }
+
+            // Define variable with exact value.
+            let _id = "";
+            let email = "";
+
+            if (Object.keys(student).length !== 0) {
+                _id = this.lessonForm._id
+                email = student.email
+            } else {
+                _id = lesson._id;
+                email = this.currentUserEmail;
+            }
+
+            const payload = {
+                students: {
+                    action: "remove",
+                    student: {
+                        email: email,
+                        space: 1
+                    }
+                }
+            };
+
+            // Update the lesson.
+            await this.updateLesson(payload, _id);
+
+            // Show an alert to the user.
+            await this.showPopUp({
+                message: "Successfully Remove Student From Lesson.",
+                autoClose: 1000,
+                type: "success"
+            });
+            
+        },
+
+
+        // Function to get the next page of the enrolled section in the lesson form.
+        nextPage() {
+            const total = this.lessonForm.students.length;
+            const maxPage = Math.ceil(total / 5);
+            if (this.studentPage < maxPage) {
+                this.studentPage++;
+            }
+        },
+
+
+        // Function to get the previous page of the enrolled section in the lesson form.
+        prevPage() {
+            if (this.studentPage > 1) {
+                this.studentPage--;
+            }
+        },
+
+
+        // Function to delete a lesson
+        async deleteLesson(lesson) {
+            // Show confirmation popup before deleting.
+            const confirmDelete = await this.showPopUp({
+                message: "Are you sure you want to delete this lesson?",
+                buttons: [
+                    {
+                        text: "Delete",
+                        class: "btn btn-danger",
+                        action: () => true
+                    },
+                    {
+                        text: "Cancel",
+                        class: "btn btn-secondary",
+                        action: () => false
+                    }
+                ]
+            });
+
+            if (!confirmDelete) {
+                return; // User cancelled
+            }
+
+            this.closeLessonForm();
+            
+            await this.deleteALesson(lesson._id)
+        },
+
+
+        // Function to populate taught lesson table.
+        async populateTaughtLessons() {
+            await this.getTaughtLesson();
+        },
+
+
+        // Function to populate the enrolled lesson table. 
+        async populateEnrolledLessons() {
+            await this.getEnrolledLesson();
+        },
+
+
 
 
 
@@ -414,39 +568,48 @@ new Vue({
                 case 'description':
                 case 'topic':
                 case 'location':
-                    if (value === "") {
-                        this.errors[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} is required.`;
+                    if (!value || value.trim() === "") {
+                        this.lessonErrors[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} is required.`;
                     } else {
-                        this.errors[field] = "";
+                        this.lessonErrors[field] = "";
                     }
                     break;
 
                 // Validate space.
                 case 'space':
-                    if (value.trim() === "") {
-                        this.errors.space = "Space is required.";
+                    if (value === "" || value === null || value === undefined) {
+                        this.lessonErrors.space = "Space is required.";
                     } else if (isNaN(value)) {
-                        this.errors.space = "Must be a number.";
+                        this.lessonErrors.space = "Must be a number.";
                     } else if (value < 5) {
-                        this.errors.price = "Space cannot be less than 5.";
+                        this.lessonErrors.space = "Space cannot be less than 5.";
                     } else {
-                        this.errors.space = "";
+                        this.lessonErrors.space = "";
                     }
                     break;
                 
                 // Validate price.
                 case 'price':
-                    if (value === "") {
-                        this.errors.price = "Price is required.";
+                    if (value === "" || value === null || value === undefined) {
+                        this.lessonErrors.price = "Price is required.";
                     } else if (isNaN(value)) {
-                        this.errors.price = "Must be a number.";
+                        this.lessonErrors.price = "Must be a number.";
                     } else if (value < 0) {
-                        this.errors.price = "Price cannot be less than zero.";
+                        this.lessonErrors.price = "Price cannot be less than zero.";
                     } else {
-                        this.errors.price = "";
+                        this.lessonErrors.price = "";
                     }
                     break;
-            }
+                
+                // Validate the image.
+                case 'image':
+                if (!this.imageOptions.some(img => img.file === value)) {
+                    this.lessonErrors.image = "Invalid image selected.";
+                } else {
+                    this.lessonErrors.image = "";
+                }
+                break;
+                }
         },
 
 
@@ -469,7 +632,7 @@ new Vue({
                 
                 // Validate phone field.
                 case 'phone':
-                if (value.trim() === "") {
+                if (value === "" || value === null || value === undefined) {
                     this.checkoutErrors.phone = "Phone number is required.";
                 } else if (isNaN(value)) {
                     this.checkoutErrors.phone = "Phone number must be a number.";
@@ -487,7 +650,7 @@ new Vue({
         // API calls:
         
         // Get all the lessons.
-        fetchLessons() {
+        async fetchLessons() {
             fetch(`${this.base_url}/api/lessons/`)
                 // Check if the fetch wa successful.
                 .then(response => {
@@ -497,10 +660,10 @@ new Vue({
                     // Parse the response as JSON.
                     return response.json();
                 })
-                // Sort the data.
+                // Map the data.
                 .then(result => {
                         this.lessons = result.data.map(lesson => ({
-                        id: lesson._id,
+                        _id: lesson._id,
                         name: lesson.name,
                         description: lesson.description,
                         topic: lesson.topic,
@@ -514,7 +677,7 @@ new Vue({
                 })
                 // Catch error errors that might occur.
                 .catch(error => {
-                    console.error(error);
+                    console.error("Error while getting the taught lesson", error);
                 });
         },
 
@@ -569,9 +732,9 @@ new Vue({
                     this.currentPage = "home";
                 }
             })
-            // Catch any that might occur when try to sign up a user.
+            // Catch any that might occur when trying to sign up a user.
             .catch(error => {
-                console.log("Error while trying to sign up a new user: ", error)
+                console.error("Error while trying to sign up a new user: ", error)
             })
         },
 
@@ -625,9 +788,9 @@ new Vue({
                     this.currentPage = "home";
                 }
             })
-            // Catch any that might occur when try to sign up a user.
+            // Catch any that might occur when trying to sign up a user.
             .catch(error => {
-                console.log("Error while trying to login a user: ", error)
+                console.error("Error while trying to login a user: ", error)
             })
         },
 
@@ -672,7 +835,7 @@ new Vue({
 
                     // Show an alret to the user.
                     await this.showPopUp({
-                        message: "Password reset Successful.",
+                        message: "Password Reset Successful.",
                         autoClose: 1000,
                         type: "success"
                     });
@@ -682,10 +845,232 @@ new Vue({
                     this.currentPage = "home";
                 }
             })
-            // Catch any that might occur when try to sign up a user.
+            // Catch any that might occur when trying to sign up a user.
             .catch(error => {
-                console.log("Error while trying to reset a user's password: ", error)
+                console.error("Error while trying to reset a user's password: ", error)
             })
+        },
+
+
+        // Add a new lesson.
+        async addLesson(lessonData) {
+            fetch(`${this.base_url}/api/lessons/`, {
+                method: "POST",
+                headers : {
+                    "Content-Type" : "application/json"
+                },
+                body: JSON.stringify(lessonData)
+            })
+            .then(async response => {
+                // Get the data from the responce.
+                const data = await response.json()
+
+                // if there is an error.
+                if (data.status === "error") {
+                    if (data.errors) {
+                        // Assign new errors
+                        data.errors.forEach(error => {
+                            if(error.field && this.lessonErrors.hasOwnProperty(error.field)) {
+                                this.lessonErrors[error.field] = error.message;
+                            } else {
+                                this.lessonErrors["price"] = error.message;
+                            }
+                        });
+                    // If server sent a general error message
+                    } else if (data.message) {
+                        this.lessonErrors.image = data.message;
+                    }
+                } else if (data.status === "success") {
+                    this.closeLessonForm();
+                    await this.populateTaughtLessons();
+
+                    // Show an alret to the user.
+                    await this.showPopUp({
+                        message: "Lesson Added Successful.",
+                        autoClose: 1000,
+                        type: "success"
+                    });
+                }
+            })
+            // Catch any that might occur when trying to update an existing lesson.
+            .catch(error => {
+                console.error("Error while trying to add a lesson: ", error)
+            })
+        },
+
+
+        // Add update an existing lesson.
+        async updateLesson(lessonData, _id = null) {
+
+            // Check if id is passed in.
+            const isFormLesson = _id === null;
+            if (isFormLesson) {
+                _id = this.lessonForm._id;
+            }
+
+            fetch(`${this.base_url}/api/lessons/${_id}`, {
+                method: "PUT",
+                headers : {
+                    "Content-Type" : "application/json"
+                },
+                body: JSON.stringify(lessonData)
+            })
+            .then(async response => {
+                // Get the data from the responce.
+                const data = await response.json()
+
+                // if there is an error.
+                if (data.status === "error") {
+                    if (data.errors) {
+                        // Assign new errors
+                        data.errors.forEach(error => {
+                            if(error.field && this.lessonErrors.hasOwnProperty(error.field)) {
+                                this.lessonErrors[error.field] = error.message;
+                            } else {
+                                this.lessonErrors["image"] = error.message;
+                            }
+                        });
+                    // If server sent a general error message
+                    } else if (data.message) {
+                        this.lessonErrors.image = data.message;
+                    }
+                } else if (data.status === "success") {
+
+                    // Refresh the appropriate list based on whether _id was passed
+                    if (isFormLesson) {
+                        await this.populateEnrolledLessons();
+                        await this.populateTaughtLessons();
+                        this.closeLessonForm();
+                    } else {
+                        await this.populateEnrolledLessons();
+                        await this.populateTaughtLessons();
+                        this.closeLessonForm();
+                    }
+                }
+            })
+            // Catch any that might occur when trying to update an existing lesson.
+            .catch(error => {
+                console.error("Error while trying to update an existing lesson: ", error)
+            })
+        },
+
+
+        // Delete a lesson
+        async deleteALesson(id) {
+            fetch(`${this.base_url}/api/lessons/${id}`, {
+                method: "DELETE",
+                headers : {
+                    "Content-Type" : "application/json"
+                }
+            })
+            .then(async response => {
+                const data = await response.json();
+
+                if (data.status === "success") {
+                    await this.populateTaughtLessons();
+                    // Show success popup
+                    await this.showPopUp({
+                        message: "Lesson Deleted Successfully.",
+                        autoClose: 1000,
+                        type: "success"
+                    });
+                    return data;
+                } else if (data.status === "error") {
+                    await this.showPopUp({
+                        message: data.message || "Failed to delete lesson.",
+                        autoClose: 2000,
+                        type: "danger"
+                    });
+                }
+            })
+            // Catch any that might occur when trying to delete a lesson.
+            .catch(error => {
+                console.error("Error while trying to delete a lesson: ", error)
+            })
+        },
+
+
+        // Function to get lesson that someone is teaching.
+        async getTaughtLesson() {
+            fetch(`${this.base_url}/api/lessons/taught`, {
+                method: "POST",
+                headers : {
+                    "Content-Type" : "application/json"
+                },
+                body: JSON.stringify({
+                    email : this.currentUserEmail
+                })
+            })
+            // Check if the fetch wa successful.
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Network was not ok:" + response.statusText);
+                }
+                // Parse the response as JSON.
+                return response.json();
+            })
+            // Map the data.
+            .then(result => {
+                    this.taughtLessons = result.data.map(lesson => ({
+                    _id: lesson._id,
+                    name: lesson.name,
+                    description: lesson.description,
+                    topic: lesson.topic,
+                    location: lesson.location,
+                    space: lesson.space,
+                    availableSpace: lesson.availableSpace,
+                    price: lesson.price,
+                    students: lesson.students || [],
+                    image: lesson.image
+                }));
+            })
+            // Catch error errors that might occur when trying to get the taught the lesson.
+            .catch(error => {
+                this.taughtLessons = []
+                console.error(error);
+            });
+        },
+
+
+        // Function to get lesson that someone is enrolled in.
+        async getEnrolledLesson() {
+            fetch(`${this.base_url}/api/lessons/enrolled`, {
+                method: "POST",
+                headers : {
+                    "Content-Type" : "application/json"
+                },
+                body: JSON.stringify({
+                    email : this.currentUserEmail
+                })
+            })
+            // Check if the fetch wa successful.
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Network was not ok:" + response.statusText);
+                }
+                // Parse the response as JSON.
+                return response.json();
+            })
+            // Map the data.
+            .then(result => {
+                    this.enrolledLessons = result.data.map(lesson => ({
+                    _id: lesson._id,
+                    name: lesson.name,
+                    description: lesson.description,
+                    topic: lesson.topic,
+                    location: lesson.location,
+                    space: lesson.space,
+                    availableSpace: lesson.availableSpace,
+                    price: lesson.price,
+                    students: lesson.students || [],
+                    image: lesson.image
+                }));
+            })
+            // Catch error errors that might occur when trying to the lesson that someone is enrolled in.
+            .catch(error => {
+                this.enrolledLessons = []
+                console.error(error);
+            });
         },
 
 
@@ -693,32 +1078,44 @@ new Vue({
         // Helper methods:
 
         // Helper function to toggle between pages.
-        setPage(page) {
+        async setPage(page) {
             // Check if the user is trying to access "My Lesson" page without sign up.
-            if ((page === 'lesson' ) && !this.isAuth) {
-                // Show a pop-up warning.
-                this.showPopUp({
-                    message: "You need to login first to access this page.",
-                    autoClose: 1000,
-                    type: "warning"
-                }).then(() => {
-                    // Redirect to login page
-                    this.currentForm = 'login';
-                    this.currentPage = 'login';
-                });
-                return;
-            }
+            // if ((page === 'lesson' ) && !this.isAuth) {
+            //     // Show a pop-up warning.
+            //     this.showPopUp({
+            //         message: "You need to login first to access this page.",
+            //         autoClose: 1000,
+            //         type: "warning"
+            //     }).then(() => {
+            //         // Redirect to login page
+            //         this.currentForm = 'login';
+            //         this.currentPage = 'login';
+            //     });
+            //     return;
+            // }  
 
             // Normal page switching.
             this.currentPage = page;
+
+            if (page === "home") {
+                await this.fetchLessons();
+            };
+
+            if (page === "lesson") {
+                await this.populateTaughtLessons();
+                await this.populateEnrolledLessons();
+            }
         },
 
 
         // Helper function to know the available space left in each lessons. 
         getRemainingSpace(lesson) {
-            const cartItem = this.cart.find(c => c.lessonId === lesson.id);
-            const quantity = cartItem ? cartItem.quantity : 0;
-            return lesson.space - quantity;
+            const cartItem = this.cart.find(c => c.lessonId === lesson._id);
+            const quantityInCart = cartItem ? cartItem.quantity : 0;
+
+            const remaining = lesson.availableSpace - quantityInCart;
+
+            return remaining > 0 ? remaining : 0;
         },
 
 
@@ -738,6 +1135,41 @@ new Vue({
                 confirmPassword: ""
             };
         },
+
+
+        // Helper function to clear all the field and errors from the lesson form.
+        resetLessonForm() {
+            this.lessonForm = {
+                _id: '',
+                name: '',
+                description: '',
+                topic: '',
+                location: '',
+                space: '',
+                price: '',
+                image: 'Other',
+                students: []
+            };
+            this.lessonErrors = {
+                name: '',
+                description: '',
+                topic: '',
+                location: '',
+                space: '',
+                price: '',
+                image: ''
+            }
+            this.isEditing = false;
+        },
+
+
+        // Function to close the lesson form.
+        closeLessonForm() {
+            this.resetLessonForm();
+            this.isEditing = false;
+            this.showLessonForm = false;
+        },
+
 
 
         // Helper function to display a pop to info user of something or pop to be use as a comfirmation message.
@@ -810,10 +1242,11 @@ new Vue({
                     buttonElement.className = button.class || "btn btn-secondary";
                     buttonElement.onclick = () => {
                         document.body.removeChild(comfirmationForm);
+                        let result = null;
                         if (button.action || typeof button.action === "function") {
-                            button.action();
+                            result = button.action();
                         };
-                        resolve();
+                        resolve(result);
                     };
                     content.appendChild(buttonElement);
                 });
@@ -825,7 +1258,7 @@ new Vue({
     },
     computed: {
 
-        // Auth Form:
+        // Auth form computed:
 
         // Return the main header title for the auth form based on the current form.
         headerTitle() {
@@ -898,22 +1331,18 @@ new Vue({
 
 
 
-        //
+        // Lesson form computed:
+
+        // Function to divide the student in one lesson into groups of 5.
         paginatedStudents() {
             const start = (this.studentPage - 1) * 5;
             return this.lessonForm.students.slice(start, start + 5);
         },
-        enrolledLessons() {
-            return this.lessons.filter(lesson =>
-                lesson.students.some(student => student.email === this.email)
-            );
-        },
-        hasMorePages() {
-            return this.lessonForm.students.length > this.studentPage * 5;
-        },
+
+
         cartWithLessonDetails() {
             return this.cart.map(item => {
-                const lesson = this.lessons.find(l => l.id === item.lessonId);
+                const lesson = this.lessons.find(l => l._id === item.lessonId);
                 return { ...item, ...lesson };
             });
         }

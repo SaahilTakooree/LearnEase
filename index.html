@@ -204,7 +204,7 @@
                                 <div v-if="currentPage === 'home'">
                                     <div class="container-fluid mt-4 pt-4">
                                         <div class="cart-item card shadow-sm mb-3" v-for="lesson in lessons"
-                                            :key="lesson.id">
+                                            :key="lesson._id">
                                             <div class="row">
                                                 <div
                                                     class="col-5 col-md-3 cart-image-container d-flex align-items-center justify-content-center">
@@ -248,10 +248,10 @@
                                                         <div v-else class="d-inline-block">
                                                             <span class="cart-counter-span">
                                                                 <i class="fa fa-trash me-1"
-                                                                    v-if="cart.find(c => c.lessonId === lesson.id).quantity === 1"
+                                                                    v-if="cart.find(c => c.lessonId === lesson._id).quantity === 1"
                                                                     v-on:click.stop="removeFromCart(lesson)"></i>
                                                                 <i class="fa fa-minus me-1"
-                                                                    v-if="cart.find(c => c.lessonId === lesson.id).quantity > 1"
+                                                                    v-if="cart.find(c => c.lessonId === lesson._id).quantity > 1"
                                                                     v-on:click.stop="decreaseQuantity(lesson)"></i>
                                                                 {{ getCartItem(lesson).quantity }}
                                                                 <i class="fa fa-plus ms-1"
@@ -267,7 +267,7 @@
                                 </div>
                                 <div v-else-if="currentPage === 'lesson'">
                                     <div class="lesson-page container pt-4">
-                                        <button class="lesson-add btn mb-3" v-on:click.prevent="openAddLesson()">
+                                        <button class="lesson-add btn mb-3" v-on:click.prevent="openLessonForm">
                                             Add Lesson
                                             <i class="fa fa-plus"></i>
                                         </button>
@@ -279,43 +279,54 @@
                                                     <input type="text" class="form-control" id="name"
                                                         placeholder="Name" v-model="lessonForm.name"
                                                         @input="validateLessonField('name')" required>
-                                                    <span class="text-danger">{{ errors.name }}</span>
+                                                    <span class="text-danger">{{ lessonErrors.name }}</span>
                                                 </div>
                                                 <div class="mb-2">
                                                     <label for="description">Lesson Description</label>
                                                     <textarea type="text" class="form-control" id="description"
                                                         placeholder="Description" v-model="lessonForm.description"
                                                         @input="validateLessonField('description')" required></textarea>
-                                                    <span class="text-danger">{{ errors.description }}</span>
+                                                    <span class="text-danger">{{ lessonErrors.description }}</span>
                                                 </div>
                                                 <div class="mb-2">
                                                     <label for="topic">Topic</label>
                                                     <input type="text" class="form-control" id="topic"
                                                         v-model="lessonForm.topic" placeholder="Topic"
                                                         @input="validateLessonField('topic')" required>
-                                                    <span class="text-danger">{{ errors.topic }}</span>
+                                                    <span class="text-danger">{{ lessonErrors.topic }}</span>
                                                 </div>
                                                 <div class="mb-2">
                                                     <label for="location">Location</label>
                                                     <input type="text" class="form-control" id="location"
                                                         v-model="lessonForm.location" placeholder="Location"
                                                         @input="validateLessonField('location')" required>
-                                                    <span class="text-danger">{{ errors.location }}</span>
+                                                    <span class="text-danger">{{ lessonErrors.location }}</span>
                                                 </div>
                                                 <div class="mb-2">
                                                     <label for="space">Total Space</label>
                                                     <input type="tel" class="form-control" id="space"
                                                         v-model="lessonForm.space" placeholder="Total Space"
                                                         @input="validateLessonField('space')" required>
-                                                    <span class="text-danger">{{ errors.space }}</span>
+                                                    <span class="text-danger">{{ lessonErrors.space }}</span>
                                                 </div>
                                                 <div class="mb-2">
                                                     <label for="price">Price (Rs)</label>
                                                     <input type="tel" class="form-control" id="price"
                                                         v-model="lessonForm.price" placeholder="Price (Rs)"
                                                         @input="validateLessonField('price')" required>
-                                                    <span class="text-danger">{{ errors.price }}</span>
+                                                    <span class="text-danger">{{ lessonErrors.price }}</span>
                                                 </div>
+                                                <div class="mb-2">
+                                                    <label for="image">Lesson Image</label>
+                                                    <select class="form-control" id="image" v-model="lessonForm.image" @change="validateLessonField('image')">
+                                                        <option disabled value="">-- Select an image --</option>
+                                                        <option v-for="img in imageOptions" :key="img.name" :value="img.file">
+                                                            {{ img.name }}
+                                                        </option>
+                                                    </select>
+                                                    <span class="text-danger">{{ lessonErrors.image }}</span>
+                                                </div>
+
 
                                                 <div v-if="isEditing">
                                                     <hr>
@@ -339,7 +350,7 @@
                                                                 <td>{{ student.email }}</td>
                                                                 <td>
                                                                     <button class="btn btn-sm btn-danger"
-                                                                        v-on:click.prevent="removeStudent(student)">
+                                                                        v-on:click.prevent="removeStudentFromStudent(student, {})">
                                                                         Remove
                                                                         <i class="fa fa-trash-o"></i>
                                                                     </button>
@@ -369,7 +380,7 @@
                                                             </button>
 
                                                             <button class="btn pagination-controls btn-sm"
-                                                                :disabled="!hasMorePages"
+                                                                :disabled="studentPage >= Math.ceil(lessonForm.students.length / 5)"
                                                                 v-on:click.prevent="nextPage">
                                                                 Next <i class="fa fa-chevron-right"></i>
                                                             </button>
@@ -381,7 +392,7 @@
                                                     <i class="fa fa-floppy-o"></i>
                                                 </button>
                                                 <button type="button" class="btn btn-secondary ms-2"
-                                                    v-on:click.prevent="cancelEdit()">
+                                                    v-on:click.prevent="closeLessonForm()">
                                                     Cancel
                                                     <i class="fa fa-times"></i>
                                                 </button>
@@ -390,50 +401,51 @@
 
                                         <hr class="mt-2 mb-2">
 
-                                        <h4>My Lesson</h4>
+                                        <div v-if="taughtLessons.length > 0">
+                                            <h4>My Lesson</h4>
 
-                                        <table class="table table-bordered lesson-table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Name</th>
-                                                    <th>Topic</th>
-                                                    <th>Location</th>
-                                                    <th>Total Space</th>
-                                                    <th>Space avaliable</th>
-                                                    <th>Price (Rs)</th>
-                                                    <th>Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr v-if="lessons.length === 0" class="text-center">
-                                                    <td colspan="6">No lessons available.</td>
-                                                </tr>
-                                                <tr v-else="lessons.length > 0" v-for="lesson in lessons"
-                                                    :key="lesson.id">
-                                                    <td>{{ lesson.name }}</td>
-                                                    <td>{{ lesson.topic }}</td>
-                                                    <td>{{ lesson.location }}</td>
-                                                    <td>{{ lesson.space }}</td>
-                                                    <td>0</td>
-                                                    <td>{{ lesson.price }}</td>
-                                                    <td>
-                                                        <button class="btn btn-sm btn-warning me-2"
-                                                            v-on:click="editLesson(lesson)">
-                                                            Edit
-                                                            <i class="fa fa-pencil"></i>
-                                                        </button>
-                                                        <button class="btn btn-sm btn-danger"
-                                                            v-on:click="deleteLesson(lesson)">
-                                                            Delete
-                                                            <i class="fa fa-trash"></i>
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
+                                            <table class="table table-bordered lesson-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Name</th>
+                                                        <th>Topic</th>
+                                                        <th>Location</th>
+                                                        <th>Total Space</th>
+                                                        <th>Space avaliable</th>
+                                                        <th>Price (Rs)</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr v-if="taughtLessons.length === 0" class="text-center">
+                                                        <td colspan="6">No Taught Lessons Available.</td>
+                                                    </tr>
+                                                    <tr v-else="taughtLessons.length > 0" v-for="lesson in taughtLessons"
+                                                        :key="lesson._id">
+                                                        <td>{{ lesson.name }}</td>
+                                                        <td>{{ lesson.topic }}</td>
+                                                        <td>{{ lesson.location }}</td>
+                                                        <td>{{ lesson.space }}</td>
+                                                        <td>{{ lesson.availableSpace }}</td>
+                                                        <td>{{ lesson.price }}</td>
+                                                        <td>
+                                                            <button class="btn btn-sm btn-warning me-2"
+                                                                v-on:click="editLesson(lesson)">
+                                                                Edit
+                                                                <i class="fa fa-pencil"></i>
+                                                            </button>
+                                                            <button class="btn btn-sm btn-danger"
+                                                                v-on:click="deleteLesson(lesson)">
+                                                                Delete
+                                                                <i class="fa fa-trash"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
 
-                                        <hr class="mt-2 mb-2">
-                                        
+                                            <hr class="mt-2 mb-2">
+                                        </div>
 
                                         <h4>Enrolled Lesson</h4>
                                         <table class="table table-bordered lesson-table">
@@ -448,11 +460,11 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <tr v-if="lessons.length === 0 " class="text-center">
+                                                <tr v-if="enrolledLessons.length === 0 " class="text-center">
                                                     <td colspan="6">Not enrolled in any lesson.</td>
                                                 </tr>
                                                 <tr v-else="lessons.length > 0" v-for="lesson in enrolledLessons"
-                                                    :key="lesson.id">
+                                                    :key="lesson._id">
                                                     <td>{{ lesson.name }}</td>
                                                     <td>{{ lesson.description }}</td>
                                                     <td>{{ lesson.topic }}</td>
@@ -460,7 +472,7 @@
                                                     <td>{{ lesson.price }}</td>
                                                     <td>
                                                         <button class="btn btn-sm btn-danger me-2"
-                                                            v-on:click="editLesson(lesson)">
+                                                            v-on:click="removeStudentFromStudent({}, lesson)">
                                                             Leave Lesson
                                                             <i class="fa fa-user-times"></i>
                                                         </button>
@@ -484,7 +496,7 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr v-for="item in cartWithLessonDetails" :key="item.id">
+                                            <tr v-for="item in cartWithLessonDetails" :key="item._id">
                                                 <td>{{ item.name }}</td>
                                                 <td>{{ item.description }}</td>
                                                 <td>{{ item.topic }}</td>
