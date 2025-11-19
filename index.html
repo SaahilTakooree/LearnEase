@@ -46,19 +46,19 @@
 
                             <div class="input-group">
                                 <input type="text" class="form-control form-control-lg bg-light fs-6"
-                                    placeholder="Email" v-model="email" @input="validateAuthField('email')">
+                                    placeholder="Email" v-model="email" v-on:input="validateAuthField('email')">
                             </div>
                             <span class="text-danger small"  v-if="authErrors.email">{{ authErrors.email }}</span>
 
                             <div class="input-group mt-3">
                                 <input type="password" class="form-control form-control-lg bg-light fs-6"
-                                    placeholder="Password" v-model="password" @input="validateAuthField('password')">
+                                    placeholder="Password" v-model="password" v-on:input="validateAuthField('password')">
                             </div>
                             <span class="text-danger small"  v-if="authErrors.password">{{ authErrors.password }}</span>
 
                             <div class="input-group mt-3" v-if="currentForm != 'login'">
                                 <input type="password" class="form-control form-control-lg bg-light fs-6"
-                                    placeholder="Confirm Password" v-model="confirmPassword" @input="validateAuthField('confirmPassword')">
+                                    placeholder="Confirm Password" v-model="confirmPassword" v-on:input="validateAuthField('confirmPassword')">
                             </div>
                             <span class="text-danger small"  v-if="authErrors.confirmPassword">{{ authErrors.confirmPassword }}</span>
 
@@ -130,7 +130,7 @@
                                 <button class="nav-link btn-link" :class="{ active: currentPage === 'shoppingCart' }"
                                     v-on:click.prevent="toggleCartPage" :disabled="cart.length === 0"
                                     :title="cart.length === 0 ? 'Cart is empty. Add items to checkout.' : ''">
-                                    Shopping Cart
+                                    Checkout
                                     <i class="fa fa-shopping-cart"></i>
                                     ({{this.cart.length}})
                                 </button>
@@ -141,22 +141,29 @@
                                     v-on:click.prevent="openAuthForm()">
                                     Sign In
                                 </button>
-                                <span v-else class="ms-3 d-none d-md-block">Hi!!</span>
+                                <button v-else="isAuth" class="m-3 d-none d-md-block"
+                                    v-on:click.prevent="logOut()">
+                                    Log Out
+                                </button>
                             </li>
                         </ul>
                     </div>
 
 
                     <form class="d-flex align-items-center search-form" role="search">
-                        <input class="form-control me-2" type="search" placeholder="Search..." aria-label="Search">
-                        <button class="btn btn-outline-primary fa fa-search" type="submit"></button>
+                        <input class="form-control me-2" type="search" placeholder="Search..." aria-label="Search"
+                        v-model="searchQuery" v-on:input="onSearchInput">
+                        <button class="btn btn-outline-primary fa fa-search" type="submit" v-on:click.prevent="searchLessons"></button>
                     </form>
 
                     <div>
                         <button v-if="!isAuth" class="m-3 d-none d-md-block" v-on:click.prevent="openAuthForm()">
                             Sign In
                         </button>
-                        <span v-else class="ms-3 d-none d-md-block">Hi!!</span>
+                        <button v-else="isAuth" class="m-3 d-none d-md-block"
+                            v-on:click.prevent="logOut()">
+                            Log Out
+                        </button>
                     </div>
 
 
@@ -180,7 +187,7 @@
                                     <h5>Sort Lessons</h5>
                                     <div class="mb-2 filter-group">
                                         <label class="form-label">Attribute</label>
-                                        <select v-model="sortAttribute" class="form-select">
+                                        <select v-model="sortAttribute" class="form-select" v-on:change="sortLessons">
                                             <option v-for="option in sortOptions" :key="option.value"
                                                 :value="option.value">
                                                 {{ option.text }}
@@ -190,7 +197,7 @@
                                     <hr>
                                     <div>
                                         <label class="form-label">Order</label>
-                                        <select v-model="sortOrder" class="form-select">
+                                        <select v-model="sortOrder" class="form-select" v-on:change="sortLessons">
                                             <option value="asc">Ascending</option>
                                             <option value="desc">Descending</option>
                                         </select>
@@ -204,6 +211,14 @@
                             <div class="mt-5 content">
                                 <div v-if="currentPage === 'home'">
                                     <div class="container-fluid mt-4 pt-4">
+                                        <div v-if="lessons.length === 0" class="text-center text-muted mt-4">
+                                            <span v-if="searchQuery.trim() !== ''">
+                                                No lessons found matching "{{ searchQuery }}"
+                                            </span>
+                                            <span v-else>
+                                                No lessons added yet.
+                                            </span>
+                                        </div>
                                         <div class="cart-item card shadow-sm mb-3" v-for="lesson in lessons"
                                             :key="lesson._id">
                                             <div class="row">
@@ -220,8 +235,8 @@
                                                         lesson.description }}</div>
 
                                                     <div class="mt-2 d-flex gap-2 flex-wrap">
-                                                        <div class="text-secondary topic-text">
-                                                            Topic: <span>{{ lesson.topic }}</span>
+                                                        <div class="text-secondary subject-text">
+                                                            Subject: <span>{{ lesson.topic }}</span>
                                                         </div>
                                                     </div>
 
@@ -274,52 +289,52 @@
                                         </button>
                                         <div v-if="showLessonForm" class="mb-3 p-3 border rounded lesson-form">
                                             <h4>{{ isEditing ? 'Edit Lesson' : 'Add Lesson' }}</h4>
-                                            <form @submit.prevent="submitLesson">
+                                            <form v-on:submit.prevent="submitLesson">
                                                 <div class="mb-2">
                                                     <label for="name">Lesson Name</label>
                                                     <input type="text" class="form-control" id="name"
                                                         placeholder="Name" v-model="lessonForm.name"
-                                                        @input="validateLessonField('name')" required>
+                                                        v-on:input="validateLessonField('name')" required>
                                                     <span class="text-danger">{{ lessonErrors.name }}</span>
                                                 </div>
                                                 <div class="mb-2">
                                                     <label for="description">Lesson Description</label>
                                                     <textarea type="text" class="form-control" id="description"
                                                         placeholder="Description" v-model="lessonForm.description"
-                                                        @input="validateLessonField('description')" required></textarea>
+                                                        v-on:input="validateLessonField('description')" required></textarea>
                                                     <span class="text-danger">{{ lessonErrors.description }}</span>
                                                 </div>
                                                 <div class="mb-2">
-                                                    <label for="topic">Topic</label>
-                                                    <input type="text" class="form-control" id="topic"
-                                                        v-model="lessonForm.topic" placeholder="Topic"
-                                                        @input="validateLessonField('topic')" required>
+                                                    <label for="subject">Subject</label>
+                                                    <input type="text" class="form-control" id="subject"
+                                                        v-model="lessonForm.topic" placeholder="Subject"
+                                                        v-on:input="validateLessonField('topic')" required>
                                                     <span class="text-danger">{{ lessonErrors.topic }}</span>
                                                 </div>
                                                 <div class="mb-2">
                                                     <label for="location">Location</label>
                                                     <input type="text" class="form-control" id="location"
                                                         v-model="lessonForm.location" placeholder="Location"
-                                                        @input="validateLessonField('location')" required>
+                                                        v-on:input="validateLessonField('location')" required>
                                                     <span class="text-danger">{{ lessonErrors.location }}</span>
                                                 </div>
                                                 <div class="mb-2">
                                                     <label for="space">Total Space</label>
                                                     <input type="tel" class="form-control" id="space"
                                                         v-model="lessonForm.space" placeholder="Total Space"
-                                                        @input="validateLessonField('space')" required>
+                                                        v-on:input="validateLessonField('space')" required>
                                                     <span class="text-danger">{{ lessonErrors.space }}</span>
                                                 </div>
                                                 <div class="mb-2">
                                                     <label for="price">Price (Rs)</label>
                                                     <input type="tel" class="form-control" id="price"
                                                         v-model="lessonForm.price" placeholder="Price (Rs)"
-                                                        @input="validateLessonField('price')" required>
+                                                        v-on:input="validateLessonField('price')" required>
                                                     <span class="text-danger">{{ lessonErrors.price }}</span>
                                                 </div>
                                                 <div class="mb-2">
                                                     <label for="image">Lesson Image</label>
-                                                    <select class="form-control" id="image" v-model="lessonForm.image" @change="validateLessonField('image')">
+                                                    <select class="form-control" id="image" v-model="lessonForm.image" v-on:change="validateLessonField('image')">
                                                         <option disabled value="">-- Select an image --</option>
                                                         <option v-for="img in imageOptions" :key="img.name" :value="img.file">
                                                             {{ img.name }}
@@ -411,7 +426,7 @@
                                                 <thead>
                                                     <tr>
                                                         <th>Name</th>
-                                                        <th>Topic</th>
+                                                        <th>Subject</th>
                                                         <th>Location</th>
                                                         <th>Total Space</th>
                                                         <th>Space avaliable</th>
@@ -456,7 +471,7 @@
                                                 <tr>
                                                     <th>Name</th>
                                                     <th>Description</th>
-                                                    <th>Topic</th>
+                                                    <th>Subject</th>
                                                     <th>Location</th>
                                                     <th>Price (Rs)</th>
                                                     <th>Action</th>
@@ -492,7 +507,7 @@
                                             <tr>
                                                 <th>Name</th>
                                                 <th>Description</th>
-                                                <th>Topic</th>
+                                                <th>Subject</th>
                                                 <th>Location</th>
                                                 <th>Price</th>
                                                 <th>Quantity</th>
@@ -534,7 +549,7 @@
                                             <label for="checkoutName" class="form-label">Name:</label>
                                             <input type="text" class="form-control" id="checkoutName"
                                             placeholder="Name" v-model="checkoutForm.name"
-                                            @input="validateCheckoutField('name')" required>
+                                            v-on:input="validateCheckoutField('name')" required>
                                             <small class="text-danger">{{ checkoutErrors.name }}</small>
                                         </div>
 
@@ -542,12 +557,12 @@
                                             <label for="checkoutPhone" class="form-label">Phone:</label>
                                             <input type="text" class="form-control" id="checkoutPhone"
                                             placeholder="Phone" v-model="checkoutForm.phone"
-                                            @input="validateCheckoutField('phone')" required>
+                                            v-on:input="validateCheckoutField('phone')" required>
                                             <small class="text-danger">{{ checkoutErrors.phone }}</small>
                                         </div>
 
                                         <button class="btn btn-success" :disabled="!isCheckoutFormValid" v-on:click="submitOrder">
-                                            Confirm Order
+                                            Checkout
                                         </button>
                                     </div>
                                 </div>

@@ -7,6 +7,10 @@ new Vue({
         currentUserEmail: "teacher@example.com",
         currentPage: "home",
 
+        // Header data.
+        searchQuery: "",
+        searchTimeout: null,
+
         // Sidebar data.
         showFilters: false,
         sortAttribute: '',
@@ -80,21 +84,22 @@ new Vue({
         isCheckoutFormValid : false,
     },
     methods: {
+        // Change from cart page to home page when in the checkout page.
         toggleCartPage() {
             // Check if the user is trying to access "shoppingCart" page without sign up.
-            // if (!this.isAuth) {
-            //     // Show a pop-up warning.
-            //     this.showPopUp({
-            //         message: "You need to login first to access this page.",
-            //         autoClose: 1000,
-            //         type: "warning"
-            //     }).then(() => {
-            //         // Redirect to login page
-            //         this.currentForm = 'login';
-            //         this.currentPage = 'login';
-            //     });
-            //     return;
-            // }
+            if (!this.isAuth) {
+                // Show a pop-up warning.
+                this.showPopUp({
+                    message: "You need to login first to access this page.",
+                    autoClose: 1000,
+                    type: "warning"
+                }).then(() => {
+                    // Redirect to login page
+                    this.currentForm = 'login';
+                    this.currentPage = 'login';
+                });
+                return;
+            }
 
             if (this.currentPage === 'shoppingCart') {
                 this.currentPage = 'home';
@@ -104,9 +109,7 @@ new Vue({
         },
 
 
-        toggleFilters() {
-            this.showFilters = !this.showFilters;
-        },
+        // Function to resize the element dynamically
         adjustMainLayout() {
             const header = document.getElementById('header');
             const sidebar = document.getElementById('sidebar');
@@ -130,6 +133,9 @@ new Vue({
                 sidebar.style.height = 'auto';
                 mainContent.style.marginTop = headerHeight + sidebarHeight + 'px';
             }
+
+            // FORCE reflow
+            mainContent.getBoundingClientRect();
         },
         handleResize() {
             this.isSmallScreen = window.innerWidth < 768
@@ -141,9 +147,48 @@ new Vue({
                 this.showFilters = false;
             }
         },
+
+
+
+        // Header method.
+
+        // Debounced input handler
+        onSearchInput() {
+            clearTimeout(this.searchTimeout);
+            this.searchTimeout = setTimeout(() => {
+                this.searchLessons();
+            }, 100);
+        },
+
+
+        // Function to log a user out.
+        logOut() {
+            this.currentUserEmail = "";
+            this.isAuth = false;
+            this.setPage("home");
+
+            // Adject the layout
+            this.$nextTick(() => {
+                // Slight delay to ensure DOM is rendered.
+                setTimeout(() => {
+                    this.adjustMainLayout();
+                }, 50); 
+            });
+        },
+
+
+
+        // Sidebar method.
+
+        // Function to hide or unhide the filters
+        toggleFilters() {
+            this.showFilters = !this.showFilters;
+        },
+
+        // Function to get the sorted options.
         loadSortOptions() {
             const textOptions = [
-                { value: 'topic', text: 'Topic' },
+                { value: 'topic', text: 'Subject' },
                 { value: 'location', text: 'Location' },
                 { value: 'price', text: 'Price' },
                 { value: 'spaces', text: 'Spaces' }
@@ -154,6 +199,48 @@ new Vue({
                 this.sortAttribute = textOptions[0].value;
             }
         },
+
+
+        // Function to sort the lessons.
+        sortLessons() {
+            let sorted = [...this.lessons];
+
+            // Determine the attribute to sort by.
+            const attr = this.sortAttribute;
+            const order = this.sortOrder === 'asc' ? 1 : -1;
+
+            sorted.sort((a, b) => {
+                let valA, valB;
+
+                if (attr === 'topic') {
+                    valA = a.name.toLowerCase();
+                    valB = b.name.toLowerCase();
+                } 
+                else if (attr === 'location') {
+                    valA = a.location.toLowerCase();
+                    valB = b.location.toLowerCase();
+                } 
+                else if (attr === 'price') {
+                    valA = Number(a.price);
+                    valB = Number(b.price);
+                } 
+                else if (attr === 'spaces') {
+                    valA = this.getRemainingSpace(a);
+                    valB = this.getRemainingSpace(b);
+                }
+
+                if (valA < valB) {
+                    return -1 * order;
+                }
+                if (valA > valB) {
+                    return 1 * order;
+                }
+                return 0;
+            });
+
+            this.lessons = sorted;
+        },
+
 
 
         // Home page method:
@@ -271,7 +358,10 @@ new Vue({
             if (this.currentForm === 'login') {
                 this.currentPage = 'home';
                 this.$nextTick(() => {
-                    this.adjustMainLayout();
+                    // Slight delay to ensure DOM is rendered.
+                    setTimeout(() => {
+                        this.adjustMainLayout();
+                    }, 50); 
                 });
             } else if (this.currentForm === 'signup') {
                 this.currentForm = 'login';
@@ -297,7 +387,7 @@ new Vue({
                 await this.signup()
             } else if (this.currentForm === "login") {
                 await this.login()
-            } if (this.currentForm === "reset") {
+            } else if (this.currentForm === "reset") {
                 await this.reset()
             }
         },
@@ -550,7 +640,7 @@ new Vue({
             };
 
             const result = await this.addOrder(orderData);
-            successes = [];
+            let successes = [];
 
             if (result === "success") {
                 for (const lesson of lessonsData) {
@@ -703,8 +793,8 @@ new Vue({
                 case 'name':
                     if (value.trim() === "") {
                         this.checkoutErrors.name = "Name is required."
-                    } else if (!/^[A-Za-z\s]+$/.test(value)) {
-                        this.checkoutErrors.name = "Name must contain letters and spaces only.";
+                    } else if (!/^[A-Za-z]+$/.test(value)) {
+                        this.checkoutErrors.name = "Name must contain letters only.";
                     } else {
                         this.checkoutErrors.name = "";
                     }
@@ -714,8 +804,8 @@ new Vue({
                 case 'phone':
                     if (!value || value.trim() === "") {
                         this.checkoutErrors.phone = "Phone number is required.";
-                    } else if (!/^\+?\d{7,15}$/.test(value.trim())) {
-                        this.checkoutErrors.phone = "Invalid phone number format. Only digits allowed, optionally starting with +, 7-15 digits.";
+                    } else if (!/^\d{7,15}$/.test(value.trim())) {
+                        this.checkoutErrors.phone = "Invalid phone number format. Only digits allowed, 7-15 digits.";
                     } else {
                         this.checkoutErrors.phone = "";
                     }
@@ -733,33 +823,84 @@ new Vue({
         // Get all the lessons.
         async fetchLessons() {
             fetch(`${this.base_url}/api/lessons/`)
-                // Check if the fetch wa successful.
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error("Network was not ok:" + response.statusText);
-                    }
-                    // Parse the response as JSON.
-                    return response.json();
-                })
-                // Map the data.
-                .then(result => {
-                        this.lessons = result.data.map(lesson => ({
-                        _id: lesson._id,
-                        name: lesson.name,
-                        description: lesson.description,
-                        topic: lesson.topic,
-                        location: lesson.location,
-                        space: lesson.space,
-                        availableSpace: lesson.availableSpace,
-                        price: lesson.price,
-                        students: lesson.students || [],
-                        image: lesson.image
-                    }));
-                })
-                // Catch error errors that might occur.
-                .catch(error => {
-                    console.error("Error while getting the taught lesson", error);
+            // Check if the fetch wa successful.
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Network was not ok:" + response.statusText);
+                }
+                // Parse the response as JSON.
+                return response.json();
+            })
+            // Map the data.
+            .then(result => {
+                    this.lessons = result.data.map(lesson => ({
+                    _id: lesson._id,
+                    name: lesson.name,
+                    description: lesson.description,
+                    topic: lesson.topic,
+                    location: lesson.location,
+                    space: lesson.space,
+                    availableSpace: lesson.availableSpace,
+                    price: lesson.price,
+                    students: lesson.students || [],
+                    image: lesson.image
+                }));
+
+                this.sortLessons(); 
+            })
+            // Catch error errors that might occur.
+            .catch(error => {
+                this.lessons = [];
+                console.error("Error while getting the lessons", error);
+            });
+        },
+
+
+        // Function to search for specific lesson.
+        async searchLessons() {
+            const query = this.searchQuery.trim();
+
+            if (query === "") {
+                await this.fetchLessons();
+                return;
+            }
+
+            fetch(`${this.base_url}/api/search?q=${encodeURIComponent(query)}`)
+            // Check if the fetch wa successful.
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Network was not ok:" + response.statusText);
+                }
+                // Parse the response as JSON.
+                return response.json();
+            })
+            // Map the data.
+            .then(result => {
+                    this.lessons = result.data.map(lesson => ({
+                    _id: lesson._id,
+                    name: lesson.name,
+                    description: lesson.description,
+                    topic: lesson.topic,
+                    location: lesson.location,
+                    space: lesson.space,
+                    availableSpace: lesson.availableSpace,
+                    price: lesson.price,
+                    students: lesson.students || [],
+                    image: lesson.image
+                }));
+
+                this.sortLessons(); 
+            })
+            // Catch error errors that might occur.
+            .catch(error => {
+                this.fetchLessons();
+                this.showPopUp({
+                    message: "Unable to search for specific lesson.",
+                    autoClose: 1000,
+                    type: "error"
                 });
+                console.error("Error while trying to search for specific lessons", error);
+            });
         },
 
 
@@ -811,6 +952,14 @@ new Vue({
                     this.isAuth = true;
                     this.currentUserEmail = data.data;
                     this.currentPage = "home";
+
+                    // Adjust layout after login
+                    this.$nextTick(() => {
+                        // Slight delay to ensure DOM is rendered.
+                        setTimeout(() => {
+                            this.adjustMainLayout();
+                        }, 50); 
+                    });
                 }
             })
             // Catch any that might occur when trying to sign up a user.
@@ -867,6 +1016,14 @@ new Vue({
                     this.isAuth = true;
                     this.currentUserEmail = data.data;
                     this.currentPage = "home";
+
+                    // Adjust layout after login
+                    this.$nextTick(() => {
+                        // Slight delay to ensure DOM is rendered.
+                        setTimeout(() => {
+                            this.adjustMainLayout();
+                        }, 50); 
+                    });
                 }
             })
             // Catch any that might occur when trying to sign up a user.
@@ -924,6 +1081,14 @@ new Vue({
                     this.isAuth = true;
                     this.currentUserEmail = data.data;
                     this.currentPage = "home";
+
+                    // Adjust layout after login
+                    this.$nextTick(() => {
+                        // Slight delay to ensure DOM is rendered.
+                        setTimeout(() => {
+                            this.adjustMainLayout();
+                        }, 50); 
+                    });
                 }
             })
             // Catch any that might occur when trying to sign up a user.
@@ -1201,22 +1366,31 @@ new Vue({
         // Helper function to toggle between pages.
         async setPage(page) {
             // Check if the user is trying to access "My Lesson" page without sign up.
-            // if ((page === 'lesson' ) && !this.isAuth) {
-            //     // Show a pop-up warning.
-            //     this.showPopUp({
-            //         message: "You need to login first to access this page.",
-            //         autoClose: 1000,
-            //         type: "warning"
-            //     }).then(() => {
-            //         // Redirect to login page
-            //         this.currentForm = 'login';
-            //         this.currentPage = 'login';
-            //     });
-            //     return;
-            // }  
+            if ((page === 'lesson' ) && !this.isAuth) {
+                // Show a pop-up warning.
+                this.showPopUp({
+                    message: "You need to login first to access this page.",
+                    autoClose: 1000,
+                    type: "warning"
+                }).then(() => {
+                    // Redirect to login page
+                    this.currentForm = 'login';
+                    this.currentPage = 'login';
+                });
+                return;
+            }  
 
             // Normal page switching.
             this.currentPage = page;
+
+            // Adjust the layout.
+            this.$nextTick(() => {
+                // Slight delay to ensure DOM is rendered.
+                setTimeout(() => {
+                    this.adjustMainLayout();
+                }, 50); 
+            });
+            this.searchQuery = "";
 
             if (page === "home") {
                 await this.fetchLessons();
@@ -1461,6 +1635,10 @@ new Vue({
         },
 
 
+
+        // Shopping cart computed.
+
+        // Function to get the item in the cart.
         cartWithLessonDetails() {
             return this.cart.map(item => {
                 const lesson = this.lessons.find(l => l._id === item.lessonId);
@@ -1469,6 +1647,7 @@ new Vue({
         }
     },
     mounted() {
+        // Resize the element when the app loads.
         this.adjustMainLayout();
         window.addEventListener('resize', this.handleResize);
         this.loadSortOptions();
@@ -1479,10 +1658,12 @@ new Vue({
         }
     },
     created() {
+        // Detect initial screen size before rendering.
         this.isSmallScreen = window.innerWidth < 768
 
+        // On large screen always show the filter.
         if (!this.isSmallScreen) {
             this.showFilters = true;
         }
     }
-})
+});
