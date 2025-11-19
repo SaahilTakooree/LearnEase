@@ -132,6 +132,7 @@
                                     :title="cart.length === 0 ? 'Cart is empty. Add items to checkout.' : ''">
                                     Shopping Cart
                                     <i class="fa fa-shopping-cart"></i>
+                                    ({{this.cart.length}})
                                 </button>
                             </li>
 
@@ -337,6 +338,7 @@
                                                         <thead>
                                                             <tr>
                                                                 <th>Email</th>
+                                                                <th>Space bought</th>
                                                                 <th style="width:120px">Action</th>
                                                             </tr>
                                                         </thead>
@@ -348,6 +350,7 @@
                                                             <tr v-for="student in paginatedStudents"
                                                                 :key="student.email">
                                                                 <td>{{ student.email }}</td>
+                                                                <td>{{ student.space }}</td>
                                                                 <td>
                                                                     <button class="btn btn-sm btn-danger"
                                                                         v-on:click.prevent="removeStudentFromStudent(student, {})">
@@ -492,6 +495,7 @@
                                                 <th>Topic</th>
                                                 <th>Location</th>
                                                 <th>Price</th>
+                                                <th>Quantity</th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
@@ -503,7 +507,16 @@
                                                 <td>{{ item.location }}</td>
                                                 <td>{{ item.price }}</td>
                                                 <td>
-                                                    <button class="btn btn-danger btn-sm" v-on:click="removeFromCart(item)">
+                                                    <div class="d-flex align-items-center">
+
+
+                                                        <button class="btn btn-sm btn-primary me-2" v-on:click.prevent="decreaseQuantity(item)">-</button>
+                                                        <span>{{ item.quantity }}</span>
+                                                        <button class="btn btn-sm btn-primary ms-2" v-on:click.prevent="increaseQuantity(item)" :disabled="getRemainingSpace(item) === 0">+</button>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-danger btn-sm" v-on:click.prevent="removeFromCart(item)">
                                                         Remove
                                                     </button>
                                                 </td>

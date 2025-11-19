@@ -4,7 +4,7 @@ new Vue({
         // API base URL.
         base_url: "http://localhost:6969",
         
-        currentUserEmail: "student@gmail.com",
+        currentUserEmail: "teacher@example.com",
         currentPage: "home",
 
         // Sidebar data.
@@ -78,7 +78,6 @@ new Vue({
             phone : ""
         },
         isCheckoutFormValid : false,
-        orderSubmitted : false,
     },
     methods: {
         toggleCartPage() {
@@ -155,17 +154,6 @@ new Vue({
                 this.sortAttribute = textOptions[0].value;
             }
         },
-        
-
-        submitOrder() {
-            this.orderSubmitted = true;
-            this.showPopUp({
-                message: "Sucessfully placed order for lesson",
-                autoClose: 1500,
-                type: "success"
-            });
-        },
-
 
 
         // Home page method:
@@ -313,7 +301,6 @@ new Vue({
                 await this.reset()
             }
         },
-
 
 
         // My Lesson page method.
@@ -514,6 +501,99 @@ new Vue({
         },
 
 
+        // Checkout page.
+
+        // Function to add an order.
+        async submitOrder() {
+            // Check if the there are any invalid field.
+            Object.keys(this.checkoutForm).forEach(
+                field => this.validateCheckoutField(field)
+            );
+            const hasError = Object.values(this.checkoutErrors).some(error => error !== '');
+            if (hasError) {
+                return;
+            };
+
+            // Show confirmation popup before submitting.
+            const confirm = await this.showPopUp({
+                message: "Do you want to place order",
+                buttons: [
+                    {
+                        text: "Yes",
+                        class: "btn btn-danger",
+                        action: () => true
+                    },
+                    {
+                        text: "Cancel",
+                        class: "btn btn-secondary",
+                        action: () => false
+                    }
+                ]
+            });
+
+            // If user clicked "Cancel", do nothing
+            if (!confirm) {
+                return;
+            }
+
+            const lessonsData = this.cart.map(item => ({
+                id: item.lessonId,
+                spaces: item.quantity
+            }));
+
+            // Prepare JSON data
+            const orderData = {
+                name : this.checkoutForm.name,
+                phone : this.checkoutForm.phone,
+                lessonsData : lessonsData,
+                email : this.currentUserEmail
+            };
+
+            const result = await this.addOrder(orderData);
+            successes = [];
+
+            if (result === "success") {
+                for (const lesson of lessonsData) {
+                    const payload = {
+                        students: {
+                            action: "add",
+                            student: {
+                                email: this.currentUserEmail,
+                                space: lesson.spaces
+                            }
+                        }
+                    };
+
+                    try {
+                        const status = await this.updateLesson(payload, lesson.id);
+                        successes.push(status === "success");
+                    } catch (err) {
+                        console.error(`Failed to update lesson ${lesson.id}:`, err);
+                        successes.push(false);
+                    }
+                }
+            }
+
+            const allSuccessful = successes.every(s => s === true);
+
+            if (allSuccessful && result === "success") {
+                this.cart = [];
+
+                await this.showPopUp({
+                    message: "Successfully ordered lesson(s).",
+                    autoClose: 1500,
+                    type: "success"
+                });
+
+                this.setPage("lesson");
+            } else {
+                await this.showPopUp({
+                    message: "Fail to add orders.",
+                    autoClose: 2500,
+                    type: "warning"
+                });
+            }
+        },
 
 
 
@@ -632,17 +712,18 @@ new Vue({
                 
                 // Validate phone field.
                 case 'phone':
-                if (value === "" || value === null || value === undefined) {
-                    this.checkoutErrors.phone = "Phone number is required.";
-                } else if (isNaN(value)) {
-                    this.checkoutErrors.phone = "Phone number must be a number.";
-                } else if (!/^\+?\d{7,15}$/.test(phone)) {
-                    this.checkoutErrors.phone = "Invalid phone number format.";
-                }
+                    if (!value || value.trim() === "") {
+                        this.checkoutErrors.phone = "Phone number is required.";
+                    } else if (!/^\+?\d{7,15}$/.test(value.trim())) {
+                        this.checkoutErrors.phone = "Invalid phone number format. Only digits allowed, optionally starting with +, 7-15 digits.";
+                    } else {
+                        this.checkoutErrors.phone = "";
+                    }
+                    break;
             }
 
             // Form is valid if no errors.
-            this.isFormValid =  this.checkoutErrors.name === "" && this.checkoutErrors.phone === "";
+            this.isCheckoutFormValid =  this.checkoutErrors.name === "" && this.checkoutErrors.phone === "";
         },
 
 
@@ -908,7 +989,7 @@ new Vue({
                 _id = this.lessonForm._id;
             }
 
-            fetch(`${this.base_url}/api/lessons/${_id}`, {
+            return fetch(`${this.base_url}/api/lessons/${_id}`, {
                 method: "PUT",
                 headers : {
                     "Content-Type" : "application/json"
@@ -935,7 +1016,6 @@ new Vue({
                         this.lessonErrors.image = data.message;
                     }
                 } else if (data.status === "success") {
-
                     // Refresh the appropriate list based on whether _id was passed
                     if (isFormLesson) {
                         await this.populateEnrolledLessons();
@@ -947,6 +1027,7 @@ new Vue({
                         this.closeLessonForm();
                     }
                 }
+                return data.status
             })
             // Catch any that might occur when trying to update an existing lesson.
             .catch(error => {
@@ -1072,6 +1153,46 @@ new Vue({
                 console.error(error);
             });
         },
+
+
+        // Add an order.
+        async addOrder(orderData) {
+            return fetch(`${this.base_url}/api/orders/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(orderData)
+            })
+            .then(response => response.json())
+            .then(data => {
+
+                if (data.status === "error") {
+
+                    if (data.errors) {
+                        data.errors.forEach(error => {
+                            if (error.field && this.checkoutErrors.hasOwnProperty(error.field)) {
+                                this.checkoutErrors[error.field] = error.message;
+                            } else {
+                                this.checkoutErrors.phone = error.message;
+                            }
+                        });
+                    } else if (data.message) {
+                        this.checkoutErrors.phone = data.message;
+                    }
+                    return "error"
+                }
+
+                if (data.status === "success") {
+                    return data.status;
+                }
+            })
+            .catch(error => {
+                console.error("Add order error:", error);
+                return { status: "error", message: error };
+            });
+        },
+
 
 
 
