@@ -47,11 +47,29 @@
 }
 
 .cart-item button.btn {
-  width: 25%;
+  width: 30%;
+  padding: 1.1rem;
   border-radius: 8px;
   height: 2.2em;
   background-color: var(--color-primary);
   color: var(--color-text);
+}
+
+.cart-item .mt-2 button.me-2 {
+    width: 6%;
+    border-radius: 8px;
+    padding: 0.3rem;
+    font-weight: bold;     
+    color: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.cart-item .mt-2 button.me-2:hover {
+    background-color: #e2e6ea;
 }
 
 .cart-counter-span {

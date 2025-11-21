@@ -24,10 +24,11 @@
 
 <body>
     <div id="app">
+        <!-- Auth form. -->
         <main v-if="currentPage === 'login'">
             <div id="auth" class="container d-flex justify-content-center align-items-center min-vh-100">
                 <div class="row border rounded-4 p-3 box-area shadow">
-
+                    <!-- Left container. -->
                     <div
                         class="col-md-6 rounded-4 d-flex justify-content-center align-items-center flex-column left-box">
                         <div class="featured-image mb-3">
@@ -36,7 +37,8 @@
                         <h3 class="f2-2">{{ leftTitle }}</h3>
                         <small class="text-wrap text-center slogan text-muted small">{{ leftSlogan }}</small>
                     </div>
-
+                    
+                    <!-- Right container. -->
                     <div class="col-md-6 right-box">
                         <div class="row align-item-center">
                             <div class="header-text mb-4">
@@ -101,6 +103,7 @@
         </main>
 
         <div v-else>
+            <!-- Header component. -->
             <header id="header" class="navbar navbar-expand-lg fixed-top shadow-sm">
                 <div class="container-fluid">
                     <a class="navbar-brand d-flex align-items-center" href="" v-on:click.prevent="setPage('home')">
@@ -130,19 +133,17 @@
                                 <button class="nav-link btn-link" :class="{ active: currentPage === 'shoppingCart' }"
                                     v-on:click.prevent="toggleCartPage" :disabled="cart.length === 0"
                                     :title="cart.length === 0 ? 'Cart is empty. Add items to checkout.' : ''">
-                                    Checkout
+                                    shopping cart
                                     <i class="fa fa-shopping-cart"></i>
                                     ({{this.cart.length}})
                                 </button>
                             </li>
 
-                            <li class="nav-item d-md-none">
-                                <button v-if="!isAuth" class="m-3 d-none d-md-block"
-                                    v-on:click.prevent="openAuthForm()">
+                            <li class="nav-item d-block d-md-none mt-2">
+                                <button v-if="!isAuth" class="btn btn-primary w-100" v-on:click.prevent="openAuthForm()">
                                     Sign In
                                 </button>
-                                <button v-else="isAuth" class="m-3 d-none d-md-block"
-                                    v-on:click.prevent="logOut()">
+                                <button v-else class="btn btn-secondary w-100" v-on:click.prevent="logOut()">
                                     Log Out
                                 </button>
                             </li>
@@ -156,12 +157,11 @@
                         <button class="btn btn-outline-primary fa fa-search" type="submit" v-on:click.prevent="searchLessons"></button>
                     </form>
 
-                    <div>
-                        <button v-if="!isAuth" class="m-3 d-none d-md-block" v-on:click.prevent="openAuthForm()">
+                    <div class="d-none d-md-flex align-items-center">
+                        <button v-if="!isAuth" class="btn btn-primary me-2" v-on:click.prevent="openAuthForm()">
                             Sign In
                         </button>
-                        <button v-else="isAuth" class="m-3 d-none d-md-block"
-                            v-on:click.prevent="logOut()">
+                        <button v-else class="btn btn-secondary me-2" v-on:click.prevent="logOut()">
                             Log Out
                         </button>
                     </div>
@@ -177,7 +177,8 @@
 
             <main>
                 <div class="row">
-                    <div class="col-md-2">
+                    <!-- Sidebar component. -->
+                    <div class="col-md-2" v-if="currentPage === 'home'">
                         <aside id="sidebar">
                             <div class="sort-section">
                                 <button v-if="isSmallScreen" class="btn" v-on:click.prevent="toggleFilters">
@@ -206,9 +207,10 @@
                             </div>
                         </aside>
                     </div>
-                    <div class="col-md-10">
+                    <div :class="currentPage === 'home' ? 'col-md-10' : 'col-md-12'">
                         <div id="mainContent">
                             <div class="mt-5 content">
+                                <!-- Home page. -->
                                 <div v-if="currentPage === 'home'">
                                     <div class="container-fluid mt-4 pt-4">
                                         <div v-if="lessons.length === 0" class="text-center text-muted mt-4">
@@ -242,8 +244,7 @@
 
                                                     <div class="price-location mt-auto">
                                                         <span :class="['badge', getAvailabilityClass(lesson)]">
-                                                            Spaces Available: {{ getRemainingSpace(lesson) }} / {{
-                                                            lesson.space }}
+                                                            Spaces Available: {{ getRemainingSpace(lesson) }} / {{lesson.space }}
                                                             <br>
                                                             <span>{{ getAvailabilityText(lesson) }}</span>
                                                         </span>
@@ -252,37 +253,35 @@
                                                         <div class="text-secondary small">Location: {{ lesson.location }}</div>
                                                     </div>
 
-                                                    <div class="mt-2">
-                                                        <div v-if="!getCartItem(lesson)">
-                                                            <button
-                                                                class="btn btn-sm d-flex justify-content-center align-items-center"
-                                                                v-on:click="addToCart(lesson)"
-                                                                :disabled="lesson.availableSpace === 0">
-                                                                Add to cart
-                                                            </button>
-                                                        </div>
-                                                        <div v-else class="d-inline-block">
-                                                            <span class="cart-counter-span">
-                                                                <i class="fa fa-trash me-1"
-                                                                    v-if="cart.find(c => c.lessonId === lesson._id).quantity === 1"
-                                                                    v-on:click.stop="removeFromCart(lesson)"></i>
-                                                                <i class="fa fa-minus me-1"
-                                                                    v-if="cart.find(c => c.lessonId === lesson._id).quantity > 1"
-                                                                    v-on:click.stop="decreaseQuantity(lesson)"></i>
-                                                                {{ getCartItem(lesson).quantity }}
-                                                                <i class="fa fa-plus ms-1"
-                                                                    :class="{ 'text-muted': getRemainingSpace(lesson) === 0 }"
-                                                                    v-on:click.stop="increaseQuantity(lesson)"></i>
-                                                            </span>
-                                                        </div>
+                                                    <div class="mt-2 d-flex align-items-center">
+                                                        <button
+                                                            class="me-2"
+                                                            v-if="getCartItem(lesson)"
+                                                            @click="decreaseQuantity(lesson)"
+                                                        >
+                                                            -
+                                                        </button>
+                                                        <button
+                                                            class="btn btn-sm d-flex justify-content-center align-items-center"
+                                                            :disabled="getRemainingSpace(lesson) === 0"
+                                                            @click="handleAddToCart(lesson)"
+                                                        >
+                                                            {{ getCartItem(lesson) ? "Add +1 to cart" : "Add to cart" }}
+                                                        </button>
+                                                        <span v-if="getCartItem(lesson)">
+                                                            <i class="fa fa-shopping-cart ms-2"></i>
+                                                            {{ getCartItem(lesson).quantity }}
+                                                        </span>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+                                <!-- Lesson page. -->
                                 <div v-else-if="currentPage === 'lesson'">
                                     <div class="lesson-page container pt-4">
+                                        <!-- Add new lesson section. -->
                                         <button class="lesson-add btn mb-3" v-on:click.prevent="openLessonForm">
                                             Add Lesson
                                             <i class="fa fa-plus"></i>
@@ -342,7 +341,6 @@
                                                     </select>
                                                     <span class="text-danger">{{ lessonErrors.image }}</span>
                                                 </div>
-
 
                                                 <div v-if="isEditing">
                                                     <hr>
@@ -418,7 +416,8 @@
                                         </div>
 
                                         <hr class="mt-2 mb-2">
-
+                                        
+                                        <!-- Taught lesson section. -->
                                         <div v-if="taughtLessons.length > 0">
                                             <h4>My Lesson</h4>
 
@@ -465,6 +464,7 @@
                                             <hr class="mt-2 mb-2">
                                         </div>
 
+                                        <!-- Enrolled in section section. -->
                                         <h4>Enrolled Lesson</h4>
                                         <table class="table table-bordered lesson-table">
                                             <thead>
@@ -500,8 +500,10 @@
                                         </table>
                                     </div>
                                 </div>
+                                <!-- Shopping cart page. -->
                                 <div v-else-if="currentPage === 'shoppingCart'" class="container mt-4">
                                     <h2 class="pt-3 mb-3">Shopping Cart</h2>
+                                    <!-- Lesson in cart section. -->
                                     <table class="table table-bordered" v-if="cart.length > 0">
                                         <thead class="table-light">
                                             <tr>
@@ -543,8 +545,11 @@
                                         Your cart is empty.
                                     </div>
 
-                                    <div class="mt-4" v-if="cart.length > 0">
-                                        <h4>Checkout</h4>
+                                    <hr>
+
+                                    <!-- Checkout section. -->
+                                    <div class="mt-4">
+                                        <h3>Checkout</h3>
                                         <div class="mb-3">
                                             <label for="checkoutName" class="form-label">Name:</label>
                                             <input type="text" class="form-control" id="checkoutName"

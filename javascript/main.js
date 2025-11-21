@@ -2,7 +2,7 @@ new Vue({
     el: '#app',
     data: {        
         // API base URL.
-        base_url: "http://localhost:6969",
+        base_url: "https://learnease-backend-rjr2.onrender.com",
         
         currentUserEmail: "teacher@example.com",
         currentPage: "home",
@@ -115,30 +115,37 @@ new Vue({
             const sidebar = document.getElementById('sidebar');
             const mainContent = document.getElementById('mainContent');
 
-            if (!header || !sidebar || !mainContent) {
+            if (!header || !mainContent) {
                 return;
             }
 
             const headerHeight = header.offsetHeight;
-            const sidebarHeight = sidebar.offsetHeight;
-            const sidebarLeft = sidebar.offsetLeft;
+            mainContent.style.marginTop = headerHeight + 'px';
 
-            sidebar.style.top = headerHeight + 'px';
+            if (sidebar) {
+                // Only do sidebar adjustments if it exists (home page).
+                const sidebarLeft = sidebar.offsetLeft;
+                const sidebarHeight = sidebar.offsetHeight;
 
-            if (window.innerWidth > 768) {
-                sidebar.style.height = `calc(100vh - ${headerHeight}px)`;
-                mainContent.style.marginTop = headerHeight + 'px';
-                mainContent.style.marginLeft = sidebarLeft + 'px';
+                sidebar.style.top = headerHeight + 'px';
+
+                if (window.innerWidth > 767) {
+                    sidebar.style.height = `calc(100vh - ${headerHeight}px)`;
+                    mainContent.style.marginLeft = sidebarLeft + 'px';
+                } else {
+                    sidebar.style.height = 'auto';
+                    mainContent.style.marginLeft = '0';
+                    mainContent.style.marginTop = headerHeight + sidebarHeight + 'px';
+                }
             } else {
-                sidebar.style.height = 'auto';
-                mainContent.style.marginTop = headerHeight + sidebarHeight + 'px';
+                // If there is not sidebar, reset margin-left.
+                mainContent.style.marginLeft = '0';
             }
-
-            // FORCE reflow
+            // Force reflow.
             mainContent.getBoundingClientRect();
         },
         handleResize() {
-            this.isSmallScreen = window.innerWidth < 768
+            this.isSmallScreen = window.innerWidth <= 768
             this.adjustMainLayout();
 
             if (!this.isSmallScreen) {
@@ -191,7 +198,8 @@ new Vue({
                 { value: 'topic', text: 'Subject' },
                 { value: 'location', text: 'Location' },
                 { value: 'price', text: 'Price' },
-                { value: 'spaces', text: 'Spaces' }
+                { value: 'spaces', text: 'Spaces' },
+                { value: 'availableSpace', text: 'Available Spaces' }
             ]
 
             this.sortOptions = textOptions;
@@ -215,16 +223,16 @@ new Vue({
                 if (attr === 'topic') {
                     valA = a.name.toLowerCase();
                     valB = b.name.toLowerCase();
-                } 
-                else if (attr === 'location') {
+                } else if (attr === 'location') {
                     valA = a.location.toLowerCase();
                     valB = b.location.toLowerCase();
-                } 
-                else if (attr === 'price') {
+                } else if (attr === 'price') {
                     valA = Number(a.price);
                     valB = Number(b.price);
-                } 
-                else if (attr === 'spaces') {
+                } else if (attr === 'spaces') {
+                    valA = Number(a.space);;
+                    valB = Number(b.space);;
+                } else if (attr === 'availableSpace') {
                     valA = this.getRemainingSpace(a);
                     valB = this.getRemainingSpace(b);
                 }
@@ -297,11 +305,33 @@ new Vue({
                         class: "btn btn-danger",
                         action: () => {
                             this.cart = this.cart.filter(c => c.lessonId !== lesson._id);
+
+                            if (this.cart.length === 0 && this.currentPage === "shoppingCart") {
+                            this.showPopUp({
+                                message: "Your cart is now empty. Returning to homepage.",
+                                type: "warning",
+                                autoClose: 1000
+                            }).then(() => {
+                                this.setPage("home");
+                            });
+            };
                         }},
                     { text: "Cancel", class: "btn btn-secondary", action: null }
                 ]
-
             });
+        },
+
+
+        // Function to handle the function of the add to cart button.
+        handleAddToCart(lesson) {
+            // If lesson is not yet in cart, add it.
+            if (!this.getCartItem(lesson)) {
+                this.addToCart(lesson);
+            } 
+            // If lesson is already in cart, increase quantity.
+            else {
+                this.increaseQuantity(lesson);
+            }
         },
 
 
@@ -468,6 +498,9 @@ new Vue({
         editLesson(lesson) {
             this.resetLessonForm();
             this.lessonForm = { ...lesson };
+            if (lesson.image) {
+                this.lessonForm.image = lesson.image.split('/').pop();
+            }
             this.isEditing = true;
             this.showLessonForm = true
         },
@@ -773,7 +806,8 @@ new Vue({
                 
                 // Validate the image.
                 case 'image':
-                if (!this.imageOptions.some(img => img.file === value)) {
+                    const filename = value.split('/').pop();
+                if (!this.imageOptions.some(img => img.file === filename)) {
                     this.lessonErrors.image = "Invalid image selected.";
                 } else {
                     this.lessonErrors.image = "";
@@ -1659,7 +1693,7 @@ new Vue({
     },
     created() {
         // Detect initial screen size before rendering.
-        this.isSmallScreen = window.innerWidth < 768
+        this.isSmallScreen = window.innerWidth <= 768
 
         // On large screen always show the filter.
         if (!this.isSmallScreen) {
