@@ -1,4 +1,4 @@
-.comfirmation-form-overlay {
+.confirmation-form-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -11,7 +11,7 @@
     z-index: 9999;
 }
 
-.comfirmation-form-overlay .alert {
+.confirmation-form-overlay .alert {
     padding: 2rem;
     min-width: auto;
     min-height: auto;
@@ -19,7 +19,7 @@
     text-wrap: wrap;
 }
 
-.comfirmation-form-box {
+.confirmation-form-box {
     background-color: var(--color-bg);
     padding: 2rem;
     border-radius: 1rem;
@@ -30,12 +30,12 @@
     animation: fadeIn 0.3s ease-out;
 }
 
-.comfirmation-form-box p{
+.confirmation-form-box p{
     margin-bottom: 20px;
     color: var(--color-text);
 }
 
-.comfirmation-form-box .btn {
+.confirmation-form-box .btn {
     margin: 0 1.5rem;
 }
 

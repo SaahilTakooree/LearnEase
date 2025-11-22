@@ -32,6 +32,7 @@ new Vue({
 
         // Main page data.
         lessons: [],
+        allLessons: [],
 
         // My lesson page.
         taughtLessons: [],
@@ -708,6 +709,9 @@ new Vue({
                     type: "success"
                 });
 
+                this.checkoutForm.name = "";
+                this.checkoutForm.phone = "";
+
                 this.setPage("lesson");
             } else {
                 await this.showPopUp({
@@ -867,7 +871,7 @@ new Vue({
             })
             // Map the data.
             .then(result => {
-                    this.lessons = result.data.map(lesson => ({
+                    this.allLessons = result.data.map(lesson => ({
                     _id: lesson._id,
                     name: lesson.name,
                     description: lesson.description,
@@ -879,6 +883,8 @@ new Vue({
                     students: lesson.students || [],
                     image: lesson.image
                 }));
+
+                this.lessons = [...this.allLessons];
 
                 this.sortLessons(); 
             })
@@ -1501,13 +1507,13 @@ new Vue({
 
 
 
-        // Helper function to display a pop to info user of something or pop to be use as a comfirmation message.
+        // Helper function to display a pop to info user of something or pop to be use as a confirmation message.
         showPopUp({ message = "Do you want to continue?", buttons = null, autoClose = 0, type = null } = {}) {
             // Returns a promise so that the caller can await the user's responce.
             return new Promise((resolve) => {
                 // Create an overlay div for the confirmation form.
-                const comfirmationForm = document.createElement('div');
-                comfirmationForm.className = 'comfirmation-form-overlay';
+                const confirmationForm = document.createElement('div');
+                confirmationForm.className = 'confirmation-form-overlay';
 
                 // Create content contain for the message and button.
                 const content = document.createElement('div');
@@ -1539,13 +1545,13 @@ new Vue({
                     
                     // Set the inner HTML with the icon and message.
                     content.innerHTML = iconHTML + message;
-                    comfirmationForm.appendChild(content);
-                    document.body.appendChild(comfirmationForm);
+                    confirmationForm.appendChild(content);
+                    document.body.appendChild(confirmationForm);
 
                     // Automatically remove the pop-up after autoClose milliseconds.
                     setTimeout(() => {
-                        if (document.body.contains(comfirmationForm)) {
-                            document.body.removeChild(comfirmationForm);
+                        if (document.body.contains(confirmationForm)) {
+                            document.body.removeChild(confirmationForm);
                         }
                         resolve();
                     }, autoClose);
@@ -1554,7 +1560,7 @@ new Vue({
                 };
 
                 // If autoClose is not set, create a normal confirmation box.
-                content.className = 'comfirmation-form-box';
+                content.className = 'confirmation-form-box';
 
                 // Set default buttons if none are provided.
                 if (!buttons || buttons.length === 0) {
@@ -1570,7 +1576,7 @@ new Vue({
                     buttonElement.textContent = button.text || "Button";
                     buttonElement.className = button.class || "btn btn-secondary";
                     buttonElement.onclick = () => {
-                        document.body.removeChild(comfirmationForm);
+                        document.body.removeChild(confirmationForm);
                         let result = null;
                         if (button.action || typeof button.action === "function") {
                             result = button.action();
@@ -1580,8 +1586,8 @@ new Vue({
                     content.appendChild(buttonElement);
                 });
 
-                comfirmationForm.appendChild(content);
-                document.body.appendChild(comfirmationForm);
+                confirmationForm.appendChild(content);
+                document.body.appendChild(confirmationForm);
             });
         }
     },
@@ -1675,7 +1681,7 @@ new Vue({
         // Function to get the item in the cart.
         cartWithLessonDetails() {
             return this.cart.map(item => {
-                const lesson = this.lessons.find(l => l._id === item.lessonId);
+                const lesson = this.allLessons.find(l => l._id.toString() === item.lessonId.toString()) || {};
                 return { ...item, ...lesson };
             });
         }
