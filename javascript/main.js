@@ -4,7 +4,7 @@ new Vue({
         // API base URL.
         base_url: "https://learnease-backend-rjr2.onrender.com",
         
-        currentUserEmail: "teacher@example.com",
+        currentUserEmail: "",
         currentPage: "home",
 
         // Header data.
@@ -253,6 +253,24 @@ new Vue({
 
 
         // Home page method:
+
+        // Function to get all lesson.
+        async getAllLessons() {
+            // Display pop up message.
+            const gettingLessonPopup = await this.showPopUp({
+                message: "Getting all lessons. Please Wait..",
+                type: "info"
+            });
+
+            // GEt all lesson
+            await this.fetchLessons();
+
+            // Close the processing popup.
+            if (gettingLessonPopup && typeof gettingLessonPopup.close === "function") {
+                gettingLessonPopup.close();
+            }
+        },
+
 
         // Function to add product to cart.
         addToCart(lesson) {
@@ -655,10 +673,16 @@ new Vue({
                 ]
             });
 
-            // If user clicked "Cancel", do nothing
+            // If user clicked "Cancel", do nothing.
             if (!confirm) {
                 return;
             }
+
+            // Show processing popup.
+            const processingPopup = await this.showPopUp({
+                message: "Processing your order. Please Wait..",
+                type: "info"
+            });
 
             const lessonsData = this.cart.map(item => ({
                 id: item.lessonId,
@@ -699,6 +723,11 @@ new Vue({
             }
 
             const allSuccessful = successes.every(s => s === true);
+
+            // Close the processing popup.
+            if (processingPopup && typeof processingPopup.close === "function") {
+                processingPopup.close();
+            }
 
             if (allSuccessful && result === "success") {
                 this.cart = [];
@@ -901,7 +930,7 @@ new Vue({
             const query = this.searchQuery.trim();
 
             if (query === "") {
-                await this.fetchLessons();
+                await this.getAllLessons();
                 return;
             }
 
@@ -933,7 +962,7 @@ new Vue({
             })
             // Catch error errors that might occur.
             .catch(error => {
-                this.fetchLessons();
+                this.getAllLessons
                 this.showPopUp({
                     message: "Unable to search for specific lesson.",
                     autoClose: 1000,
@@ -990,7 +1019,7 @@ new Vue({
                     });
 
                     this.isAuth = true;
-                    this.currentUserEmail = data.data;
+                    this.currentUserEmail = data.data.toLowerCase();
                     this.currentPage = "home";
 
                     // Adjust layout after login
@@ -1054,7 +1083,7 @@ new Vue({
                     });
 
                     this.isAuth = true;
-                    this.currentUserEmail = data.data;
+                    this.currentUserEmail = data.data.toLowerCase();
                     this.currentPage = "home";
 
                     // Adjust layout after login
@@ -1119,7 +1148,7 @@ new Vue({
                     });
 
                     this.isAuth = true;
-                    this.currentUserEmail = data.data;
+                    this.currentUserEmail = data.data.toLowerCase();
                     this.currentPage = "home";
 
                     // Adjust layout after login
@@ -1433,7 +1462,7 @@ new Vue({
             this.searchQuery = "";
 
             if (page === "home") {
-                await this.fetchLessons();
+                await this.getAllLessons();
             };
 
             if (page === "lesson") {
@@ -1523,32 +1552,29 @@ new Vue({
                 msg.textContent = message;
                 content.appendChild(msg);
 
-                // If autoClose is greater than 0, display a temporary alert.
+                // Prepare icon HTML.
+                let iconHTML = '';
+                switch(type) {
+                    case "success":
+                        iconHTML = '<i class="fa fa-check-circle" style="margin-right:0.5rem"></i>';
+                        break;
+                    case "danger":
+                        iconHTML = '<i class="fa fa-times-circle" style="margin-right:0.5rem"></i>';
+                        break;
+                    case "warning":
+                        iconHTML = '<i class="fa fa-exclamation-triangle" style="margin-right:0.5rem"></i>';
+                        break;
+                    default:
+                        iconHTML = '<i class="fa fa-info-circle" style="margin-right:0.5rem"></i>';
+                }
+
+                // Auto-close alert.
                 if (autoClose > 0) {
-                    let iconHTML = '';
-                    // Choose icon based on type.
-                    switch(type) {
-                        case "success":
-                            iconHTML = '<i class="fa fa-check-circle" style="margin-right:0.5rem"></i>';
-                            break;
-                        case "danger":
-                            iconHTML = '<i class="fa fa-times-circle" style="margin-right:0.5rem"></i>';
-                            break;
-                        case "warning":
-                            iconHTML = '<i class="fa fa-exclamation-triangle" style="margin-right:0.5rem"></i>';
-                            break;
-                        default:
-                            iconHTML = '<i class="fa fa-info-circle" style="margin-right:0.5rem"></i>';
-                    }
-                    // Add alert styling classes.
                     content.classList.add("alert", "alert-" + type, "d-flex", "align-items-center", "justify-content-center");
-                    
-                    // Set the inner HTML with the icon and message.
                     content.innerHTML = iconHTML + message;
                     confirmationForm.appendChild(content);
                     document.body.appendChild(confirmationForm);
 
-                    // Automatically remove the pop-up after autoClose milliseconds.
                     setTimeout(() => {
                         if (document.body.contains(confirmationForm)) {
                             document.body.removeChild(confirmationForm);
@@ -1557,7 +1583,26 @@ new Vue({
                     }, autoClose);
 
                     return;
-                };
+                }
+
+                // Manual popup.
+                if (autoClose === 0 && !buttons) {
+                    content.classList.add("alert", "alert-" + type, "d-flex", "align-items-center", "justify-content-center");
+                    content.innerHTML = iconHTML + message;
+                    confirmationForm.appendChild(content);
+                    document.body.appendChild(confirmationForm);
+
+                    // Return object with close() for manual removal
+                    resolve({
+                        close: () => {
+                            if (document.body.contains(confirmationForm)) {
+                                document.body.removeChild(confirmationForm);
+                            }
+                        }
+                    });
+
+                    return;
+                }
 
                 // If autoClose is not set, create a normal confirmation box.
                 content.className = 'confirmation-form-box';
@@ -1694,7 +1739,7 @@ new Vue({
 
         // Fetch lessons from backend when app loads.
         if (this.currentPage === 'home') {
-            this.fetchLessons();
+            this.getAllLessons();
         }
     },
     created() {
