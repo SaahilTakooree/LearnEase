@@ -264,7 +264,7 @@ new Vue({
 
             // GEt all lesson
             await this.fetchLessons();
-
+            
             // Close the processing popup.
             if (gettingLessonPopup && typeof gettingLessonPopup.close === "function") {
                 gettingLessonPopup.close();
@@ -433,11 +433,44 @@ new Vue({
         // Function to handle what does the submit button does.
         async submitAction() {
             if (this.currentForm === "signup") {
+                // Display pop up message.
+                const signupPopup = await this.showPopUp({
+                    message: "Please wait…",
+                    type: "info"
+                });
+
                 await this.signup()
+
+                //  Close the popup.
+                if (signupPopup && typeof signupPopup.close === "function") {
+                    signupPopup.close();
+                }
             } else if (this.currentForm === "login") {
+                // Display pop up message.
+                const loginPopup = await this.showPopUp({
+                    message: "Please wait…",
+                    type: "info"
+                });
+
                 await this.login()
+
+                //  Close the popup.
+                if (loginPopup && typeof loginPopup.close === "function") {
+                    loginPopup.close();
+                }
             } else if (this.currentForm === "reset") {
+                // Display pop up message.
+                const resetPopup = await this.showPopUp({
+                    message: "Please wait…",
+                    type: "info"
+                });
+
                 await this.reset()
+
+                //  Close the popup.
+                if (resetPopup && typeof resetPopup.close === "function") {
+                    resetPopup.close();
+                }
             }
         },
 
@@ -499,7 +532,19 @@ new Vue({
             };
 
             if (this.isEditing) {
+                // Display pop up message.
+                const updateLessonPopup = await this.showPopUp({
+                    message: "Please wait…",
+                    type: "info"
+                });
+
                 await this.updateLesson(lessonData, null)
+
+                //  Close the popup.
+                if (updateLessonPopup && typeof updateLessonPopup.close === "function") {
+                    updateLessonPopup.close();
+                }
+
                 // Show an alret to the user.
                 await this.showPopUp({
                     message: "Lesson Updated Successful.",
@@ -508,7 +553,19 @@ new Vue({
                 });
             } else {
                 lessonData.createdBy = this.currentUserEmail; 
+
+                // Display pop up message.
+                const createLessonPopup = await this.showPopUp({
+                    message: "Please wait…",
+                    type: "info"
+                });
+
                 await this.addLesson(lessonData)
+
+                //  Close the popup.
+                if (createLessonPopup && typeof createLessonPopup.close === "function") {
+                    createLessonPopup.close();
+                }
             }
         },
 
@@ -549,6 +606,12 @@ new Vue({
                 return;
             }
 
+            // Display pop up message.
+            const removeStudentPopup = await this.showPopUp({
+                message: "Please wait…",
+                type: "info"
+            });
+
             // Define variable with exact value.
             let _id = "";
             let email = "";
@@ -573,6 +636,11 @@ new Vue({
 
             // Update the lesson.
             await this.updateLesson(payload, _id);
+
+            //  Close the popup.
+            if (removeStudentPopup && typeof removeStudentPopup.close === "function") {
+                removeStudentPopup.close();
+            }
 
             // Show an alert to the user.
             await this.showPopUp({
@@ -627,7 +695,18 @@ new Vue({
 
             this.closeLessonForm();
             
+            // Display pop up message.
+            const deleteLessonPopup = await this.showPopUp({
+                message: "Please wait…",
+                type: "info"
+            });
+
             await this.deleteALesson(lesson._id)
+
+            //  Close the popup.
+            if (deleteLessonPopup && typeof deleteLessonPopup.close === "function") {
+                deleteLessonPopup.close();
+            }
         },
 
 
